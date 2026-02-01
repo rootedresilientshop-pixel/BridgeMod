@@ -8,9 +8,9 @@
 # Visual Studio cache/options directory
 .vs/
 
-# Visual Studio Code
-.vscode/
-*.code-workspace
+# Visual Studio Code (but keep workspace config)
+# .vscode/  # Allow shared VS Code configuration
+# *.code-workspace  # Allow shared workspace files
 
 # Build results
 [Dd]ebug/

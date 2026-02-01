@@ -1,0 +1,21 @@
+{
+  "omnisharp.enableRoslynAnalyzers": true,
+  "omnisharp.enableEditorConfigSupport": true,
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true,
+    "editor.suggest.snippetsPreventQuickSuggestions": false
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/bin": true,
+    "**/obj": true,
+    "**/.vscode": false
+  },
+  "search.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  },
+  "dotnet.defaultSolutionDirSearchDepth": 1,
+  "editor.formatOnSave": true
+}
