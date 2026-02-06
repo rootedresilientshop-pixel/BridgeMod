@@ -1,0 +1,10 @@
+{
+  "name": "basic-balance-adjustment",
+  "version": "1.0.0",
+  "author": "BridgeMod Example",
+  "description": "A simple data mod that adjusts game balance. This is a complete, working example of what a BridgeMod v1 mod looks like.",
+  "modType": "Data",
+  "gameVersion": "1.0.0",
+  "dependencies": [],
+  "files": ["data/balance.json"]
+}

@@ -1,0 +1,36 @@
+{
+  "weapons": {
+    "sword": {
+      "damage": 25,
+      "attackSpeed": 1.0,
+      "cost": 100,
+      "description": "A balanced melee weapon"
+    },
+    "bow": {
+      "damage": 15,
+      "attackSpeed": 1.5,
+      "cost": 75,
+      "description": "Ranged weapon with good attack speed"
+    },
+    "mace": {
+      "damage": 35,
+      "attackSpeed": 0.7,
+      "cost": 150,
+      "description": "Slow but powerful weapon"
+    }
+  },
+  "difficulties": {
+    "easy": {
+      "enemyDamageMultiplier": 0.5,
+      "playerHealthMultiplier": 1.5
+    },
+    "normal": {
+      "enemyDamageMultiplier": 1.0,
+      "playerHealthMultiplier": 1.0
+    },
+    "hard": {
+      "enemyDamageMultiplier": 1.5,
+      "playerHealthMultiplier": 0.8
+    }
+  }
+}
