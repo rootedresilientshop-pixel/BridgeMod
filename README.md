@@ -6,6 +6,8 @@ BridgeMod is a developer-first modding platform designed to give game developers
 
 It works on console and PC. It's built on trust, not restriction.
 
+[![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
+
 ## Why BridgeMod Exists
 
 We believe:
