@@ -30,6 +30,18 @@ We believe:
 
 ✅ **Local Validation** - Works offline, no cloud dependency required
 
+## Platform Support
+
+**BridgeMod works with any C# / .NET 6.0+ platform:**
+
+- ✅ **Unity** (C# scripting, any supported version)
+- ✅ **Godot 4.x+** (C# support)
+- ✅ **Custom C# Game Engines**
+- ✅ **Console Development** (Xbox with .NET support)
+- ✅ **Any .NET 6.0+ Application**
+
+Choose your engine. BridgeMod handles the modding.
+
 ## Getting Started
 
 ### For Game Developers
