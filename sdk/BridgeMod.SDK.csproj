@@ -14,9 +14,9 @@
     <Title>BridgeMod SDK</Title>
     <Description>Safe, transparent, data-driven modding platform for developers and modders. Enables mod creation on console and PC with sandboxed execution, manifest validation, and developer-controlled mod surfaces.</Description>
     <Authors>The BridgeMod Project</Authors>
-    <PackageProjectUrl>https://github.com/yourusername/BridgeMod</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/yourusername/BridgeMod</RepositoryUrl>
+    <RepositoryUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>modding;game-development;mods;validation;sandbox;console;pc</PackageTags>
     <PackageReleaseNotes>Phase 1 Release: Complete SDK for safe mod loading with manifest validation, schema enforcement, and sandbox execution.</PackageReleaseNotes>
