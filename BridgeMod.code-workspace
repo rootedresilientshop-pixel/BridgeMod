@@ -10,7 +10,7 @@
     "omnisharp.enableRoslynAnalyzers": true,
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": false
+      "source.fixAll.eslint": "never"
     },
     "[csharp]": {
       "editor.defaultFormatter": "ms-dotnettools.csharp",

@@ -7,6 +7,20 @@
     <AssemblyName>BridgeMod.SDK</AssemblyName>
     <RootNamespace>BridgeMod</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>BridgeMod.SDK</PackageId>
+    <Version>0.1.0</Version>
+    <Title>BridgeMod SDK</Title>
+    <Description>Safe, transparent, data-driven modding platform for developers and modders. Enables mod creation on console and PC with sandboxed execution, manifest validation, and developer-controlled mod surfaces.</Description>
+    <Authors>The BridgeMod Project</Authors>
+    <PackageProjectUrl>https://github.com/yourusername/BridgeMod</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/yourusername/BridgeMod</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>modding;game-development;mods;validation;sandbox;console;pc</PackageTags>
+    <PackageReleaseNotes>Phase 1 Release: Complete SDK for safe mod loading with manifest validation, schema enforcement, and sandbox execution.</PackageReleaseNotes>
+    <Copyright>Copyright (c) 2026 The BridgeMod Project</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
