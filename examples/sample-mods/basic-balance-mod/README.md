@@ -41,8 +41,12 @@ var mod = loader.LoadMod("basic-balance-mod.zip");
 
 if (mod?.IsEnabled == true)
 {
-    var balanceData = mod.GetContentAsJson("data/balance.json");
-    ApplyBalanceChanges(balanceData);
+    var balanceDataJson = mod.GetFile("data/balance.json");
+    if (balanceDataJson != null)
+    {
+        var balanceData = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(balanceDataJson);
+        ApplyBalanceChanges(balanceData);
+    }
 }
 ```
 

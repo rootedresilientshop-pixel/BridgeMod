@@ -3,7 +3,7 @@
 ## Building the Project
 
 ### Prerequisites
-- .NET 6.0 SDK or later
+- .NET 10.0 SDK or later
 - Visual Studio 2022 / Visual Studio Code
 
 ### Build from Command Line

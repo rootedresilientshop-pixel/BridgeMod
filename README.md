@@ -34,13 +34,13 @@ We believe:
 
 ## Platform Support
 
-**BridgeMod works with any C# / .NET 6.0+ platform:**
+**BridgeMod works with any C# / .NET 10.0+ platform:**
 
 - ✅ **Unity** (C# scripting, any supported version)
 - ✅ **Godot 4.x+** (C# support)
 - ✅ **Custom C# Game Engines**
 - ✅ **Console Development** (Xbox with .NET support)
-- ✅ **Any .NET 6.0+ Application**
+- ✅ **Any .NET 10.0+ Application**
 
 Choose your engine. BridgeMod handles the modding.
 
@@ -85,8 +85,8 @@ var mod = loader.LoadMod("my_mod.zip");
 | [README_DEVELOPMENT.md](README_DEVELOPMENT.md) | Full API reference and implementation details |
 | [CONSTITUTION.md](CONSTITUTION.md) | Our governing principles—the "why" behind everything |
 | [MOD_SCHEMA.md](MOD_SCHEMA.md) | Mod package format specification |
-| [console_modding_execution_plan.md](console_modding_execution_plan.md) | Full roadmap (Phases 1-5) |
-| [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) | Current status and architecture |
+| [Roadmap & Execution Plan](docs/internal/console_modding_execution_plan.md) | Full roadmap (Phases 1-5) |
+| [Implementation Status](docs/internal/IMPLEMENTATION_STATUS.md) | Project status and architecture |
 
 ## Contributing
 
@@ -106,7 +106,7 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 ## What's Next (Phase 2+)
 
-From our [roadmap](console_modding_execution_plan.md):
+From our [roadmap](docs/internal/console_modding_execution_plan.md):
 
 - **Phase 2:** Enhanced mod surface declarations
 - **Phase 3:** Behavior graph runtime executor

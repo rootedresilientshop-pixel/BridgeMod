@@ -1,5 +1,9 @@
-using BridgeMod.Data;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using BridgeMod.Data;
 
 namespace BridgeMod.Runtime
 {
@@ -81,7 +85,7 @@ namespace BridgeMod.Runtime
         public LoadedMod? GetMod(string modName)
         {
             _loadedMods.TryGetValue(modName, out var mod);
-            return mod?.IsEnabled ? mod : null;
+            return mod != null && mod.IsEnabled ? mod : null;
         }
 
         /// <summary>

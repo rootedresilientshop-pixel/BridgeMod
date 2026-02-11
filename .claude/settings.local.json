@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(dotnet pack:*)",
+      "Bash(git tag:*)",
+      "Bash(gh release create v0.1.0 --title \"v0.1.0 - Phase 1: Foundations\" --notes \"$\\(cat <<''EOF''\n# Phase 1: Foundations - Complete Release\n\nBridgeMod v0.1.0 is the foundation of safe, transparent modding for console and PC.\n\n## Core SDK Components\n\n- `ModManifest.cs` - Manifest parsing with semantic versioning and dependency validation\n- `ModSchema.cs` - Comprehensive field validation, type checking, and behavior graph constraints\n- `ModValidator.cs` - Package validation, manifest integrity checks, and content verification\n- `ModLoader.cs` - Safe mod loading with automatic error recovery and mod disabling\n- `ExecutionGuards.cs` - Sandbox execution with timeouts, file access validation, and parameter bounds\n- `ModSurfaceDeclaration.cs` - Public API for developers to declare what modders can modify\n\n## Features\n\n- Three mod types: Pure Data, Behavior Graphs, Procedural Control\n- Manifest validation with detailed error reporting\n- Field constraints: String length, numeric bounds, array sizes\n- Behavior graph validation \\(nodes, edges, depth limits\\)\n- Execution timeouts \\(5 seconds default, configurable\\)\n- Automatic mod disabling on errors \\(failure containment\\)\n- Human-readable surface documentation generation\n- JSON export of mod surface declarations\n\n## Principles Implemented\n\n✅ **Developer-First Authority** - Developers declare what can be modded via `ModSurfaceDeclaration`\n\n✅ **Platform Transparency** - Auto-generated documentation shows modders exactly what surfaces are available\n\n✅ **Safety by Design** - Mods treated as untrusted data, sandboxed execution prevents crashes\n\n✅ **Hybrid Validation** - Local validation mandatory, cloud optional \\(future phase\\)\n\n✅ **Failure Containment** - Mods automatically disabled on errors, game remains stable\n\n✅ **Anonymous Distribution** - File-based, no accounts required, no moderation burden\n\n## Get Started\n\nInstall via NuGet:\n\\\\`\\\\`\\\\`\ndotnet add package BridgeMod.SDK\n\\\\`\\\\`\\\\`\n\nThen declare your mod surfaces and load mods safely. See [QUICKSTART.md]\\(https://github.com/rootedresilientshop-pixel/BridgeMod/blob/main/QUICKSTART.md\\) for details.\n\n## Learn More\n\n- [CONSTITUTION.md]\\(https://github.com/rootedresilientshop-pixel/BridgeMod/blob/main/CONSTITUTION.md\\) - Our governing principles\n- [README_DEVELOPMENT.md]\\(https://github.com/rootedresilientshop-pixel/BridgeMod/blob/main/README_DEVELOPMENT.md\\) - Full implementation guide\n- [IMPLEMENTATION_STATUS.md]\\(https://github.com/rootedresilientshop-pixel/BridgeMod/blob/main/IMPLEMENTATION_STATUS.md\\) - Architecture details\n- [Roadmap]\\(https://github.com/rootedresilientshop-pixel/BridgeMod/blob/main/console_modding_execution_plan.md\\) - What''s coming in v0.2+\n\n---\n\n**Ready to build safer mods?** Join us on [GitHub]\\(https://github.com/rootedresilientshop-pixel/BridgeMod\\).\nEOF\n\\)\")",
+      "Bash(where:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet --list-runtimes:*)",
+      "Bash(dotnet:*)",
+      "Bash(winget install:*)"
+    ]
+  }
+}

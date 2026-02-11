@@ -5,6 +5,47 @@ All notable changes to BridgeMod are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-02-11
+
+### Confidence Update
+
+v0.2.0 focuses on build reliability, documentation accuracy, and project hygiene. No new features or breaking API changes from v0.1.0.
+
+#### Fixed
+
+- Framework alignment: Solution and CI now target .NET 10.0 consistently (previously net10.0 in repo, net8.0 in published package)
+- Solution build: Added stub Program.cs files to tool projects (ModPackager, SchemaValidatorCLI) to resolve CS5001 errors
+- CI workflow: Updated to target .NET 10.0 x and run dotnet test at solution level
+- VS Code launch configuration: Replaced stale net6.0 debug config with working "Run Tests" configuration
+- Documentation: Removed references to unimplemented APIs (`GetContentAsJson`, `ValidateFileAccess`, `EnforceExecutionTimeout`)
+- Documentation: Replaced phantom API usage with correct methods (`GetFile`, `ValidateFilePath`, `ValidateExecutionTime`)
+- Platform version claims: Updated docs from ".NET 6.0+" to ".NET 10.0+" for consistency
+- Nullable reference warnings: Fixed CS8620 warnings in ModSchema.cs with proper null filtering
+- XML documentation warnings: Added comprehensive XML doc comments to all public members
+
+#### Changed
+
+- Package version: Updated to 0.2.0
+- Package description: Updated to reference ".NET 10.0+" instead of ".NET 6.0+"
+- Package release notes: Added detailed v0.2.0 release information
+- NuGet package embedding: README.md now embedded in NuGet package for better discoverability
+- Repository organization: Internal planning documents moved to `docs/internal/` with dedicated README
+- Documentation links: Updated cross-references to point to new docs/internal/ location
+
+#### Dependencies
+
+- No changes to dependencies
+- Continues to support .NET 10.0+
+- Newtonsoft.Json 13.0.3 (unchanged)
+
+#### Notes
+
+- All 26 unit tests passing
+- Zero compiler warnings in Release build
+- Full backward compatibility maintained
+
+---
+
 ## [0.1.0] - 2026-02-05
 
 ### Phase 1: Foundations - Complete Release
@@ -76,7 +117,7 @@ BridgeMod v0.1.0 is the foundation of safe, transparent modding for console and 
 
 ### Dependencies
 
-- `.NET 6.0` or later
+- `.NET 10.0` or later
 - `Newtonsoft.Json 13.0.3`
 
 ---

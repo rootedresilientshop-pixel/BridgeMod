@@ -4,7 +4,7 @@ Get BridgeMod running in your game in 10 minutes.
 
 ## Prerequisites
 
-- .NET 6.0 SDK or later
+- .NET 10.0 SDK or later
 - Your game project (Unity, Godot, or any C# environment)
 - A basic understanding of JSON
 
@@ -110,12 +110,19 @@ public void ApplyMod(LoadedMod mod)
 
     try
     {
-        guards.ValidateFileAccess(mod.Files);
-        guards.EnforceExecutionTimeout(5000); // 5 second limit
+        // Create execution context with timeout enforcement
+        using (var context = guards.CreateExecutionContext(mod.Name, 5000))
+        {
+            // Your game's logic to apply the mod
+            var balanceDataJson = mod.GetFile("data/balance.json");
+            if (balanceDataJson != null)
+            {
+                var balanceData = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(balanceDataJson);
+                ApplyBalanceChanges(balanceData);
+            }
 
-        // Your game's logic to apply the mod
-        var balanceData = mod.GetContentAsJson("data/balance.json");
-        ApplyBalanceChanges(balanceData);
+            context.Complete();
+        }
     }
     catch (Exception ex)
     {

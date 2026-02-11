@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using BridgeMod.Data;
 
 namespace BridgeMod.PublicAPI
@@ -8,10 +12,26 @@ namespace BridgeMod.PublicAPI
     /// </summary>
     public class ModSurfaceDeclaration
     {
+        /// <summary>
+        /// The title of your game.
+        /// </summary>
         public string GameTitle { get; set; }
+
+        /// <summary>
+        /// The current version of your game.
+        /// </summary>
         public string GameVersion { get; set; }
+
+        /// <summary>
+        /// List of all declared mod surfaces for this game.
+        /// </summary>
         public List<ModSurface> Surfaces { get; set; } = new();
 
+        /// <summary>
+        /// Creates a new mod surface declaration for a game.
+        /// </summary>
+        /// <param name="gameTitle">The title of your game.</param>
+        /// <param name="gameVersion">The current game version.</param>
         public ModSurfaceDeclaration(string gameTitle, string gameVersion)
         {
             GameTitle = gameTitle;

@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        dotnet-version: ['6.0', '7.0', '8.0']
+        dotnet-version: ['10.0.x']
 
     steps:
     - uses: actions/checkout@v4
@@ -23,10 +23,10 @@ jobs:
         dotnet-version: ${{ matrix.dotnet-version }}
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore BridgeMod.sln
 
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build BridgeMod.sln --configuration Release --no-restore
 
     - name: Run tests
-      run: dotnet test --configuration Release --no-build --verbosity normal
+      run: dotnet test BridgeMod.sln --configuration Release --no-build --verbosity normal

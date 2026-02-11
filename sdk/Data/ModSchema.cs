@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 
 namespace BridgeMod.Data
@@ -8,13 +11,41 @@ namespace BridgeMod.Data
     /// </summary>
     public class ModSchema
     {
+        /// <summary>
+        /// Unique identifier for this schema.
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The type of mod this schema validates.
+        /// </summary>
         public ModType ModType { get; set; }
+
+        /// <summary>
+        /// Schemas for each field, keyed by field name.
+        /// </summary>
         public Dictionary<string, FieldSchema> Fields { get; set; }
+
+        /// <summary>
+        /// Maximum number of nodes allowed in a behavior graph.
+        /// </summary>
         public int? MaxNodeCount { get; set; }
+
+        /// <summary>
+        /// Maximum depth allowed in a behavior graph.
+        /// </summary>
         public int? MaxGraphDepth { get; set; }
+
+        /// <summary>
+        /// Bounds for procedural generation parameters, keyed by parameter name.
+        /// </summary>
         public Dictionary<string, (double Min, double Max)>? ProcedureParameterBounds { get; set; }
 
+        /// <summary>
+        /// Creates a new mod schema for validation.
+        /// </summary>
+        /// <param name="name">Unique schema identifier.</param>
+        /// <param name="modType">The type of mods this schema validates.</param>
         public ModSchema(string name, ModType modType)
         {
             Name = name;
@@ -79,7 +110,8 @@ namespace BridgeMod.Data
             var nodeIds = nodes.OfType<JObject>()
                 .Where(n => n.ContainsKey("id"))
                 .Select(n => n["id"]?.ToString())
-                .ToHashSet();
+                .Where(id => !string.IsNullOrEmpty(id))
+                .ToHashSet()!;
 
             foreach (var edge in edges.OfType<JObject>())
             {
@@ -147,21 +179,63 @@ namespace BridgeMod.Data
     /// </summary>
     public class FieldSchema
     {
+        /// <summary>
+        /// The field name as it appears in mod content.
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The data type of this field.
+        /// </summary>
         public FieldType Type { get; set; }
+
+        /// <summary>
+        /// Whether this field must be present in mod content.
+        /// </summary>
         public bool IsRequired { get; set; } = true;
+
+        /// <summary>
+        /// Default value if field is not provided.
+        /// </summary>
         public object? DefaultValue { get; set; }
+
+        /// <summary>
+        /// Min and max bounds for numeric fields.
+        /// </summary>
         public (double Min, double Max)? NumericBounds { get; set; }
+
+        /// <summary>
+        /// Allowed values for string fields (whitelist).
+        /// </summary>
         public string[]? AllowedValues { get; set; }
+
+        /// <summary>
+        /// Maximum length for string fields.
+        /// </summary>
         public int? MaxLength { get; set; }
+
+        /// <summary>
+        /// Maximum size for array fields.
+        /// </summary>
         public int? MaxArraySize { get; set; }
 
+        /// <summary>
+        /// Creates a field schema with a name and type.
+        /// </summary>
+        /// <param name="name">The field name.</param>
+        /// <param name="type">The field type.</param>
         public FieldSchema(string name, FieldType type)
         {
             Name = name;
             Type = type;
         }
 
+        /// <summary>
+        /// Validates a JSON value against this field's constraints.
+        /// </summary>
+        /// <param name="value">The JSON value to validate.</param>
+        /// <param name="errors">List of validation errors found.</param>
+        /// <returns>True if validation succeeds, false otherwise.</returns>
         public bool Validate(JToken? value, out List<string> errors)
         {
             errors = new List<string>();
@@ -254,12 +328,34 @@ namespace BridgeMod.Data
         }
     }
 
+    /// <summary>
+    /// Supported JSON field types for mod schemas.
+    /// </summary>
     public enum FieldType
     {
+        /// <summary>
+        /// A text string value.
+        /// </summary>
         String,
+
+        /// <summary>
+        /// A numeric value (integer or float).
+        /// </summary>
         Number,
+
+        /// <summary>
+        /// A true/false boolean value.
+        /// </summary>
         Boolean,
+
+        /// <summary>
+        /// An array of values (homogeneous or heterogeneous).
+        /// </summary>
         Array,
+
+        /// <summary>
+        /// A nested JSON object.
+        /// </summary>
         Object
     }
 }
