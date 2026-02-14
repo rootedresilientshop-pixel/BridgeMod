@@ -10,16 +10,16 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>BridgeMod.SDK</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <Title>BridgeMod SDK</Title>
-    <Description>Multi-engine C# modding SDK for game developers. Works with Unity, Godot, and any .NET 10.0+ engine. Provides sandboxed execution, manifest validation, and developer-controlled mod surfaces. Safe on console and PC. Built on trust between developers and modders.</Description>
+    <Description>Safe, developer-controlled mod loading for C#/.NET 10.0+ games. Load ZIP-based mod packages with manifest validation, sandbox execution, and automatic failure isolation. Declare moddable surfaces so modders know exactly what they can create. Console-safe data mods with no cloud dependency. Works with Unity, Godot, and any .NET game engine.</Description>
     <Authors>The BridgeMod Project</Authors>
     <PackageProjectUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>modding;game-development;mods;validation;sandbox;console;pc;csharp;dotnet;unity;godot;game-engine;multiplatform</PackageTags>
-    <PackageReleaseNotes>v0.2.0: Confidence update — framework alignment (net10.0), build fixes, documentation accuracy pass, repo cleanup. No breaking API changes from v0.1.0.</PackageReleaseNotes>
+    <PackageTags>modding;game-development;mods;validation;sandbox;console;pc;csharp;dotnet;unity;godot;game-engine;multiplatform;mod-loader;mod-validation;data-driven;ugc;user-generated-content;console-modding;xbox;playstation;game-modding;modding-sdk;offline;zip;manifest;safety;game-plugin</PackageTags>
+    <PackageReleaseNotes>v0.2.1: Discovery update — expanded NuGet tags, improved package description, GitHub Discussions enabled, Sponsors support added. No API changes. Fully backward compatible with v0.2.0 and v0.1.0.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Copyright>Copyright (c) 2026 The BridgeMod Project</Copyright>
   </PropertyGroup>
