@@ -141,8 +141,19 @@ namespace BridgeMod.Runtime
     /// </summary>
     public class DisabledModInfo
     {
+        /// <summary>
+        /// The file path of the mod that was disabled.
+        /// </summary>
         public required string FilePath { get; set; }
+
+        /// <summary>
+        /// The UTC timestamp when this mod was disabled.
+        /// </summary>
         public DateTime DisabledAt { get; set; }
+
+        /// <summary>
+        /// The reason this mod was disabled.
+        /// </summary>
         public required string Reason { get; set; }
     }
 
@@ -152,12 +163,39 @@ namespace BridgeMod.Runtime
     /// </summary>
     public class ModExecutionContext : IDisposable
     {
+        /// <summary>
+        /// The name of the mod being executed.
+        /// </summary>
         public required string ModName { get; set; }
+
+        /// <summary>
+        /// The maximum execution time in milliseconds before the mod is forcibly terminated.
+        /// </summary>
         public int TimeoutMs { get; set; } = 5000;
+
+        /// <summary>
+        /// The UTC timestamp when execution started.
+        /// </summary>
         public DateTime StartTime { get; set; }
+
+        /// <summary>
+        /// The UTC timestamp when execution ended, or null if still executing.
+        /// </summary>
         public DateTime? EndTime { get; set; }
+
+        /// <summary>
+        /// True if execution has completed (successfully or with error).
+        /// </summary>
         public bool IsCompleted { get; set; }
+
+        /// <summary>
+        /// The last exception encountered during execution, or null if none.
+        /// </summary>
         public Exception? LastException { get; set; }
+
+        /// <summary>
+        /// The ExecutionGuards instance managing this context.
+        /// </summary>
         public required ExecutionGuards Guard { get; set; }
 
         /// <summary>
@@ -203,6 +241,9 @@ namespace BridgeMod.Runtime
             IsCompleted = true;
         }
 
+        /// <summary>
+        /// Cleans up the execution context and marks end time if still running.
+        /// </summary>
         public void Dispose()
         {
             if (!IsCompleted)

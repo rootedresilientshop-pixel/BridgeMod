@@ -17,6 +17,10 @@ namespace BridgeMod.Runtime
         private readonly Dictionary<string, LoadedMod> _loadedMods;
         private readonly ExecutionGuards _guards;
 
+        /// <summary>
+        /// Initializes a new ModLoader with the specified mod validator.
+        /// </summary>
+        /// <param name="validator">The ModValidator instance to use for validating mod packages.</param>
         public ModLoader(ModValidator validator)
         {
             _validator = validator;
@@ -166,18 +170,69 @@ namespace BridgeMod.Runtime
     /// </summary>
     public class LoadedMod
     {
+        /// <summary>
+        /// The unique name of this mod.
+        /// </summary>
         public required string Name { get; set; }
+
+        /// <summary>
+        /// The version of this mod.
+        /// </summary>
         public required string Version { get; set; }
+
+        /// <summary>
+        /// The author or creator of this mod.
+        /// </summary>
         public required string Author { get; set; }
+
+        /// <summary>
+        /// A human-readable description of what this mod does.
+        /// </summary>
         public string? Description { get; set; }
+
+        /// <summary>
+        /// The type of mod (Data, BehaviorGraph, or Procedural).
+        /// </summary>
         public required ModType ModType { get; set; }
+
+        /// <summary>
+        /// The file path to the mod package (.zip file).
+        /// </summary>
         public required string FilePath { get; set; }
+
+        /// <summary>
+        /// The UTC timestamp when this mod was loaded.
+        /// </summary>
         public DateTime LoadTime { get; set; }
+
+        /// <summary>
+        /// True if this mod is currently enabled and can be executed.
+        /// </summary>
         public bool IsEnabled { get; set; }
+
+        /// <summary>
+        /// If disabled, the reason why this mod was disabled.
+        /// </summary>
         public string? DisableReason { get; set; }
+
+        /// <summary>
+        /// The last error encountered when loading or executing this mod.
+        /// </summary>
         public string? LastError { get; set; }
+
+        /// <summary>
+        /// The number of errors encountered by this mod during execution.
+        /// </summary>
         public int ErrorCount { get; set; }
+
+        /// <summary>
+        /// The parsed manifest metadata for this mod.
+        /// </summary>
         public required ModManifest Manifest { get; set; }
+
+        /// <summary>
+        /// The mod's file contents loaded into memory, keyed by file path.
+        /// </summary>
         public Dictionary<string, string> Contents { get; } = new();
 
         /// <summary>

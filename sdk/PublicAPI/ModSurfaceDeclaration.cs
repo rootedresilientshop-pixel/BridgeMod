@@ -195,12 +195,39 @@ namespace BridgeMod.PublicAPI
     /// </summary>
     public class ModSurface
     {
+        /// <summary>
+        /// The name of this mod surface.
+        /// </summary>
         public required string Name { get; set; }
+
+        /// <summary>
+        /// A human-readable description of what this surface allows modders to modify.
+        /// </summary>
         public required string Description { get; set; }
+
+        /// <summary>
+        /// The type of mod this surface accepts (Data, BehaviorGraph, or Procedural).
+        /// </summary>
         public required ModType ModType { get; set; }
+
+        /// <summary>
+        /// The file path where mods targeting this surface should place their content.
+        /// </summary>
         public required string FilePath { get; set; }
+
+        /// <summary>
+        /// The current status of this mod surface (Enabled, Limited, Disabled, or Planned).
+        /// </summary>
         public SurfaceStatus Status { get; set; } = SurfaceStatus.Enabled;
+
+        /// <summary>
+        /// Optional constraints applied to mods using this surface (e.g., node limits for behavior graphs).
+        /// </summary>
         public SurfaceConstraints? Constraints { get; set; }
+
+        /// <summary>
+        /// The UTC timestamp when this surface was declared.
+        /// </summary>
         public DateTime DeclaredAt { get; set; } = DateTime.UtcNow;
 
         /// <summary>
@@ -233,10 +260,25 @@ namespace BridgeMod.PublicAPI
     /// </summary>
     public enum SurfaceStatus
     {
-        Enabled,   // Mods can use this surface freely
-        Limited,   // Limited access, may require approval
-        Disabled,  // Mod surface is disabled
-        Planned    // Will be available in future version
+        /// <summary>
+        /// Mods can use this surface freely without restrictions.
+        /// </summary>
+        Enabled,
+
+        /// <summary>
+        /// Limited access; mods using this surface may require developer approval.
+        /// </summary>
+        Limited,
+
+        /// <summary>
+        /// Mod surface is disabled and cannot be used.
+        /// </summary>
+        Disabled,
+
+        /// <summary>
+        /// Mod surface will be available in a future version of the game.
+        /// </summary>
+        Planned
     }
 
     /// <summary>
@@ -251,7 +293,14 @@ namespace BridgeMod.PublicAPI
     /// </summary>
     public class GraphConstraints : SurfaceConstraints
     {
+        /// <summary>
+        /// Maximum number of nodes allowed in a behavior graph mod targeting this surface.
+        /// </summary>
         public int MaxNodeCount { get; set; } = 1000;
+
+        /// <summary>
+        /// Maximum depth of nesting allowed in a behavior graph mod targeting this surface.
+        /// </summary>
         public int MaxGraphDepth { get; set; } = 50;
     }
 
@@ -260,6 +309,9 @@ namespace BridgeMod.PublicAPI
     /// </summary>
     public class ProceduralConstraints : SurfaceConstraints
     {
+        /// <summary>
+        /// Bounds (min/max values) for procedural parameters. Key is parameter name, value is (Min, Max) tuple.
+        /// </summary>
         public Dictionary<string, (double Min, double Max)> ParameterBounds { get; set; } = new();
     }
 }

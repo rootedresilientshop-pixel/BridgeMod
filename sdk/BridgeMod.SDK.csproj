@@ -10,7 +10,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>BridgeMod.SDK</PackageId>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
     <Title>BridgeMod SDK</Title>
     <Description>Multi-engine C# modding SDK for game developers. Works with Unity, Godot, and any .NET 10.0+ engine. Provides sandboxed execution, manifest validation, and developer-controlled mod surfaces. Safe on console and PC. Built on trust between developers and modders.</Description>
     <Authors>The BridgeMod Project</Authors>
@@ -19,7 +19,7 @@
     <RepositoryUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>modding;game-development;mods;validation;sandbox;console;pc;csharp;dotnet;unity;godot;game-engine;multiplatform</PackageTags>
-    <PackageReleaseNotes>v0.2.1: Metadata update — expanded NuGet tags, improved package description. No API changes.</PackageReleaseNotes>
+    <PackageReleaseNotes>v0.2.2: Added architecture diagram to documentation. Improved XML doc coverage for better IntelliSense. No API changes.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Copyright>Copyright (c) 2026 The BridgeMod Project</Copyright>
   </PropertyGroup>

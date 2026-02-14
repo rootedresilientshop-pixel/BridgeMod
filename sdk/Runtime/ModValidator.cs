@@ -17,6 +17,9 @@ namespace BridgeMod.Runtime
     {
         private readonly Dictionary<ModType, ModSchema> _schemas;
 
+        /// <summary>
+        /// Initializes a new ModValidator with default schemas for all mod types.
+        /// </summary>
         public ModValidator()
         {
             _schemas = new Dictionary<ModType, ModSchema>();
@@ -220,17 +223,40 @@ namespace BridgeMod.Runtime
     /// </summary>
     public class ValidationResult
     {
+        /// <summary>
+        /// True if the mod package passed all validation checks.
+        /// </summary>
         public bool IsValid { get; set; } = true;
+
+        /// <summary>
+        /// List of validation errors encountered (if any).
+        /// </summary>
         public List<string> Errors { get; set; } = new();
+
+        /// <summary>
+        /// List of validation warnings (non-critical issues).
+        /// </summary>
         public List<string> Warnings { get; set; } = new();
+
+        /// <summary>
+        /// The parsed mod manifest if validation succeeded, null otherwise.
+        /// </summary>
         public ModManifest? Manifest { get; set; }
 
+        /// <summary>
+        /// Adds an error to the validation result and marks it as invalid.
+        /// </summary>
+        /// <param name="error">The error message to add.</param>
         public void AddError(string error)
         {
             IsValid = false;
             Errors.Add(error);
         }
 
+        /// <summary>
+        /// Adds a non-critical warning to the validation result.
+        /// </summary>
+        /// <param name="warning">The warning message to add.</param>
         public void AddWarning(string warning)
         {
             Warnings.Add(warning);
