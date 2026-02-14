@@ -267,3 +267,90 @@ class DatabaseManager:
             """,
             (character_id, day),
         )
+
+    async def get_relationship_between(
+        self, character_id_a: int, character_id_b: int
+    ) -> dict[str, Any] | None:
+        """Get relationship between two characters (bidirectional)."""
+        return await self.fetch_one(
+            """
+            SELECT * FROM relationships
+            WHERE (character_id_a = ? AND character_id_b = ?)
+               OR (character_id_a = ? AND character_id_b = ?)
+            LIMIT 1
+            """,
+            (character_id_a, character_id_b, character_id_b, character_id_a),
+        )
+
+    async def create_relationship(
+        self,
+        character_id_a: int,
+        character_id_b: int,
+        rel_type: str,
+        strength: int,
+        history: str,
+    ) -> None:
+        """Create new relationship between characters."""
+        await self.execute(
+            """
+            INSERT INTO relationships (character_id_a, character_id_b, type, strength, history)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (character_id_a, character_id_b, rel_type, strength, history),
+        )
+
+    async def update_relationship(
+        self,
+        character_id_a: int,
+        character_id_b: int,
+        rel_type: str,
+        strength: int,
+        history_entry: str,
+    ) -> None:
+        """Update relationship, appending to history."""
+        existing = await self.get_relationship_between(character_id_a, character_id_b)
+        if not existing:
+            return
+
+        stored_a = existing["character_id_a"]
+        stored_b = existing["character_id_b"]
+
+        current_history = existing.get("history", "")
+        new_history = f"{current_history}\n{history_entry}" if current_history else history_entry
+
+        await self.execute(
+            """
+            UPDATE relationships
+            SET type = ?, strength = ?, history = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE character_id_a = ? AND character_id_b = ?
+            """,
+            (rel_type, strength, new_history, stored_a, stored_b),
+        )
+
+    async def update_faction_power(self, faction_id: int, delta: int) -> None:
+        """Adjust faction power."""
+        await self.execute(
+            "UPDATE factions SET power = MIN(100, MAX(0, power + ?)) WHERE id = ?",
+            (delta, faction_id),
+        )
+
+    async def update_faction_relation(
+        self, faction_id: int, target_faction_name: str, delta: int
+    ) -> None:
+        """Adjust faction relations with another faction."""
+        faction = await self.fetch_one("SELECT relations FROM factions WHERE id = ?", (faction_id,))
+        if not faction:
+            return
+
+        relations_json = faction.get("relations", "{}")
+        relations = (
+            json.loads(relations_json) if isinstance(relations_json, str) else (relations_json or {})
+        )
+
+        current_relation = relations.get(target_faction_name, 0)
+        relations[target_faction_name] = max(-100, min(100, current_relation + delta))
+
+        await self.execute(
+            "UPDATE factions SET relations = ? WHERE id = ?",
+            (json.dumps(relations), faction_id),
+        )

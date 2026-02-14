@@ -34,17 +34,32 @@ class LLMClient:
         """Close the underlying HTTP client."""
         await self._client.aclose()
 
+    async def __aenter__(self) -> LLMClient:
+        """Async context manager entry."""
+        return self
+
+    async def __aexit__(self, *args: Any) -> None:
+        """Async context manager exit."""
+        await self.close()
+
     async def health_check(self) -> bool:
         """Return True when the LLM endpoint is reachable."""
-        url = f"{self.endpoint}/models"
-        try:
-            response = await self._client.get(url)
-            healthy = response.status_code == 200
-            LOGGER.info("LLM health check status=%s healthy=%s", response.status_code, healthy)
-            return healthy
-        except httpx.HTTPError as exc:
-            LOGGER.warning("LLM health check failed: %s", exc)
-            return False
+        # Try Ollama's /api/tags first, then fall back to OpenAI-compatible /v1/models
+        urls = [
+            f"{self.endpoint}/api/tags",
+            f"{self.endpoint}/v1/models",
+        ]
+        for url in urls:
+            try:
+                response = await self._client.get(url)
+                healthy = response.status_code == 200
+                LOGGER.info("LLM health check status=%s healthy=%s url=%s", response.status_code, healthy, url)
+                if healthy:
+                    return True
+            except httpx.HTTPError as exc:
+                LOGGER.debug("LLM health check failed for url=%s error=%s", url, exc)
+        LOGGER.warning("LLM health check failed: no endpoints reachable")
+        return False
 
     async def make_completion(
         self,
@@ -92,18 +107,22 @@ class LLMClient:
         system_prompt: str = "You are a fantasy simulation assistant.",
         temperature: float = 0.7,
         max_tokens: int = 256,
+        max_concurrent: int = 3,
     ) -> list[str | None]:
-        """Run sequential completions with a small delay between requests."""
-        results: list[str | None] = []
-        for index, prompt in enumerate(prompts, start=1):
-            LOGGER.info("LLM batch request %s/%s", index, len(prompts))
-            result = await self.make_completion(
-                prompt=prompt,
-                system_prompt=system_prompt,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-            results.append(result)
-            if index < len(prompts):
+        """Run concurrent completions with a semaphore to limit concurrency."""
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def limited_completion(index: int, prompt: str) -> str | None:
+            async with semaphore:
+                LOGGER.info("LLM batch request %s/%s", index, len(prompts))
+                result = await self.make_completion(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
                 await asyncio.sleep(self.batch_delay_seconds)
-        return results
+                return result
+
+        tasks = [limited_completion(i, p) for i, p in enumerate(prompts, start=1)]
+        return await asyncio.gather(*tasks)

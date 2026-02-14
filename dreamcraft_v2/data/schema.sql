@@ -120,3 +120,15 @@ CREATE INDEX IF NOT EXISTS idx_narratives_day ON narratives(day);
 
 CREATE INDEX IF NOT EXISTS idx_relationships_character_a ON relationships(character_id_a);
 CREATE INDEX IF NOT EXISTS idx_relationships_character_b ON relationships(character_id_b);
+
+-- Composite index for clip system queries
+CREATE INDEX IF NOT EXISTS idx_events_day_major ON events(day, is_major);
+
+-- Event type filtering for dashboard
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(type);
+
+-- Simulation log lookup by day
+CREATE INDEX IF NOT EXISTS idx_simulation_log_day ON simulation_log(day);
+
+-- Bidirectional relationship queries
+CREATE INDEX IF NOT EXISTS idx_relationships_character_b_a ON relationships(character_id_b, character_id_a);
