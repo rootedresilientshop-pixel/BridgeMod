@@ -4,7 +4,7 @@
 
 BridgeMod is a developer-first modding platform designed to give game developers confidence that mods won't break their game, while giving modders transparent expectations about what they can create.
 
-It works on console and PC. It's built on trust, not restriction.
+Build your mod system once. It works on PC, ports to console, and never needs rearchitecting. Built on trust, not restriction.
 
 [![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
 
@@ -14,7 +14,7 @@ We believe:
 
 - **Developers deserve confidence.** Mods shouldn't be a risk. They should be a feature.
 - **Modders deserve clarity.** If a mod surface is closed, they should know why. If it's open, they should know the rules.
-- **Consoles and PC should share.** Console modding is possible—it just needs intentional design.
+- **Build once, port everywhere.** The same mod system should work on PC today and console tomorrow — no ripping out Steam Workshop, no rearchitecting for certification.
 
 [Read our principles →](CONSTITUTION.md)
 
@@ -85,10 +85,11 @@ flowchart TD
 - ✅ **Unity** (C# scripting, any supported version)
 - ✅ **Godot 4.x+** (C# support)
 - ✅ **Custom C# Game Engines**
-- ✅ **Console Development** (Xbox with .NET support)
+- ✅ **Console Development** (Xbox, PlayStation with .NET compatible runtimes)
+- ✅ **Porting-Friendly** — same mod code runs on every target platform
 - ✅ **Any .NET 10.0+ Application**
 
-Choose your engine. BridgeMod handles the modding.
+Build your mod system on PC. When you port to console, BridgeMod comes with you — same code, same validation, same safety guarantees.
 
 ## Getting Started
 
@@ -159,7 +160,7 @@ From our [roadmap](docs/internal/console_modding_execution_plan.md):
 - **Phase 4:** Procedural control layer
 - **Phase 5:** Optional cloud validation services
 
-We're building this intentionally, phase by phase. Stability matters more than speed.
+We're building toward a world where a game's mod system survives the port from PC to console without a rewrite. Phase by phase, stability over speed.
 
 ---
 
