@@ -1,0 +1,5 @@
+# v1 archive - reference only, not tracked
+_v1_archive/
+
+# Environment
+.env
