@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <None Include="../README.md" Pack="true" PackagePath="/" />
+    <None Include="../docs/images/bridgemod-architecture.svg" Pack="true" PackagePath="/docs/images/" />
   </ItemGroup>
 
 </Project>

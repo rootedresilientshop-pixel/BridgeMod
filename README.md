@@ -36,6 +36,9 @@ We believe:
 
 Every mod passes through validation, surface matching, and sandbox guards before your game sees it. Nothing gets through unchecked.
 
+**Visual Flow:**
+![BridgeMod Architecture Diagram](docs/images/bridgemod-architecture.svg)
+
 ```mermaid
 flowchart TD
     subgraph MODDER["🎮 Modder"]
