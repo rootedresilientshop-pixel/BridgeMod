@@ -12,14 +12,14 @@
     <PackageId>BridgeMod.SDK</PackageId>
     <Version>0.2.2</Version>
     <Title>BridgeMod SDK</Title>
-    <Description>Multi-engine C# modding SDK for game developers. Works with Unity, Godot, and any .NET 10.0+ engine. Provides sandboxed execution, manifest validation, and developer-controlled mod surfaces. Safe on console and PC. Built on trust between developers and modders.</Description>
+    <Description>Safe, developer-controlled mod loading for C#/.NET 10.0+ games. Load ZIP-based mod packages with manifest validation, sandbox execution, and automatic failure isolation. Declare moddable surfaces so modders know exactly what they can create. Console-safe data mods with no cloud dependency. Works with Unity, Godot, and any .NET game engine.</Description>
     <Authors>The BridgeMod Project</Authors>
     <PackageProjectUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>modding;game-development;mods;validation;sandbox;console;pc;csharp;dotnet;unity;godot;game-engine;multiplatform</PackageTags>
-    <PackageReleaseNotes>v0.2.2: Added architecture diagram to documentation. Improved XML doc coverage for better IntelliSense. No API changes.</PackageReleaseNotes>
+    <PackageTags>modding;game-development;mods;validation;sandbox;console;pc;csharp;dotnet;unity;godot;game-engine;multiplatform;mod-loader;mod-validation;data-driven;ugc;user-generated-content;console-modding;xbox;playstation;game-modding;modding-sdk;offline;zip;manifest;safety;game-plugin</PackageTags>
+    <PackageReleaseNotes>v0.2.2: Added architecture diagram to documentation. Improved XML doc coverage for better IntelliSense. No API changes. Fully backward compatible.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Copyright>Copyright (c) 2026 The BridgeMod Project</Copyright>
   </PropertyGroup>

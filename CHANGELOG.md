@@ -5,6 +5,25 @@ All notable changes to BridgeMod are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-02-14
+
+### Discovery Update
+
+v0.2.1 improves how developers find BridgeMod. No new features or breaking API changes.
+
+#### Improved
+
+- NuGet package tags expanded for broader search discovery (game-modding, mod-loader, ugc, console-modding, and more)
+- Package description updated with engine-specific keywords and clearer value proposition
+- GitHub repository topics added for improved discoverability
+- GitHub Discussions enabled for community engagement (Q&A, Ideas, Showcase, General)
+- GitHub Sponsors support added via FUNDING.yml
+
+#### No Breaking Changes
+
+- Fully backward compatible with v0.2.0 and v0.1.0
+- No API changes — this is a metadata and community infrastructure update
+
 ## [0.2.0] - 2026-02-11
 
 ### Confidence Update
