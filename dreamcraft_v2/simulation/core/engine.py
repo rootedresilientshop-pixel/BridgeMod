@@ -209,10 +209,10 @@ class SimulationEngine:
             ]
 
             # Get LLM movement decisions
-            prompt = movement_batch_prompt(location_name, location_type, char_data, nearby_locations)
+            system_prompt, user_prompt = movement_batch_prompt(location_name, location_type, char_data, nearby_locations)
             llm_response = await self.llm_client.make_completion(
-                prompt=prompt,
-                system_prompt="You are simulating fantasy character movement.",
+                prompt=user_prompt,
+                system_prompt=system_prompt,
             )
 
             # Parse and validate response
@@ -372,13 +372,13 @@ class SimulationEngine:
             ]
 
             # Get LLM interaction outcomes
-            prompt = interaction_prompt(
+            system_prompt, user_prompt = interaction_prompt(
                 location_name, location_type, char_list, relationships, recent_events
             )
 
             llm_response = await self.llm_client.make_completion(
-                prompt=prompt,
-                system_prompt="You are simulating fantasy character interactions.",
+                prompt=user_prompt,
+                system_prompt=system_prompt,
             )
 
             response_data = parse_json_response(llm_response) if llm_response else None
@@ -473,13 +473,13 @@ class SimulationEngine:
             recent_events = [e["description"] for e in recent]
 
             # Get LLM political decision
-            prompt = faction_politics_prompt(
+            system_prompt, user_prompt = faction_politics_prompt(
                 faction_name, alignment, power, relations, member_count, recent_events
             )
 
             llm_response = await self.llm_client.make_completion(
-                prompt=prompt,
-                system_prompt="You are simulating a fantasy faction's political decisions.",
+                prompt=user_prompt,
+                system_prompt=system_prompt,
             )
 
             response_data = parse_json_response(llm_response) if llm_response else None
@@ -593,20 +593,22 @@ class SimulationEngine:
                     )
 
                     # Get LLM evaluation
-                    prompt = relationship_evaluation_prompt(
+                    system_prompt, user_prompt = relationship_evaluation_prompt(
                         event.get("description", ""),
                         event_type,
                         severity,
                         char_a["name"],
                         char_a.get("personality", {}),
+                        char_a.get("backstory", "Unknown"),
                         char_b["name"],
                         char_b.get("personality", {}),
+                        char_b.get("backstory", "Unknown"),
                         current_rel,
                     )
 
                     llm_response = await self.llm_client.make_completion(
-                        prompt=prompt,
-                        system_prompt="You are evaluating relationship changes.",
+                        prompt=user_prompt,
+                        system_prompt=system_prompt,
                     )
 
                     response_data = parse_json_response(llm_response) if llm_response else None

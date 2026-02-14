@@ -6,7 +6,7 @@ from typing import Any
 
 
 def parse_json_response(text: str) -> dict[str, Any] | None:
-    """Extract JSON from LLM response (handles markdown, extra text)."""
+    """Extract JSON from LLM response (handles markdown, extra text, arrays)."""
     if not text:
         return None
 
@@ -19,11 +19,22 @@ def parse_json_response(text: str) -> dict[str, Any] | None:
     json_match = re.search(r'\{.*\}', text, re.DOTALL)
     if json_match:
         text = json_match.group(0)
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
 
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        return None
+    # Try matching JSON arrays
+    array_match = re.search(r'\[.*\]', text, re.DOTALL)
+    if array_match:
+        try:
+            arr = json.loads(array_match.group(0))
+            if isinstance(arr, list):
+                return {"events": arr}  # Wrap in expected structure
+        except json.JSONDecodeError:
+            pass
+
+    return None
 
 
 def validate_movement_response(data: dict[str, Any] | None) -> bool:
