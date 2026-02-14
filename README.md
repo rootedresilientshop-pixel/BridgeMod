@@ -32,6 +32,52 @@ We believe:
 
 ✅ **Local Validation** - Works offline, no cloud dependency required
 
+### How It Works
+
+Every mod passes through validation, surface matching, and sandbox guards before your game sees it. Nothing gets through unchecked.
+
+```mermaid
+flowchart TD
+    subgraph MODDER["🎮 Modder"]
+        A["📦 Mod Package\n.zip + manifest.json\n+ data files"]
+    end
+
+    subgraph BRIDGEMOD["🌉 BridgeMod SDK"]
+        B["🔍 ModValidator\nManifest parsing\nSchema validation\nIntegrity checks"]
+        C["🎯 Surface Match\nMod targets vs.\ndeclared surfaces"]
+        D["🛡️ Execution Guards\nSandbox execution\nTimeout enforcement\nPath validation"]
+        E["📥 ModLoader\nSafe load with\nfailure isolation"]
+    end
+
+    subgraph GAME["🎮 Your Game"]
+        F["✅ Game Receives\nSafe Data"]
+    end
+
+    subgraph DEV["👨‍💻 Game Developer"]
+        G["📋 Declare Surfaces\nBalance · Items · Quests\nControls what's moddable"]
+    end
+
+    A -->|load| B
+    B -->|"✓ valid"| C
+    B -->|"✗ invalid"| R1["⛔ Mod Rejected"]
+    C -->|"✓ matched"| D
+    C -->|"no match"| R1
+    G -.->|"defines allowed surfaces"| C
+    D --> E
+    E -->|"✓ loaded"| F
+    E -->|"error"| R2["🔇 Mod Disabled"]
+
+    style A fill:#EBF5FB,stroke:#2E5F8A,stroke-width:2px
+    style B fill:#FDEBD0,stroke:#E67E22,stroke-width:2px
+    style C fill:#E8F8F5,stroke:#1ABC9C,stroke-width:2px
+    style D fill:#F5EEF8,stroke:#8E44AD,stroke-width:2px
+    style E fill:#EBF5FB,stroke:#2E5F8A,stroke-width:2px
+    style F fill:#D5F5E3,stroke:#27AE60,stroke-width:2px
+    style G fill:#FEF9E7,stroke:#F1C40F,stroke-width:2px
+    style R1 fill:#FADBD8,stroke:#C0392B,stroke-width:2px
+    style R2 fill:#FADBD8,stroke:#C0392B,stroke-width:2px
+```
+
 ## Platform Support
 
 **BridgeMod works with any C# / .NET 10.0+ platform:**
