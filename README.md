@@ -8,6 +8,9 @@ Build your mod system once. It works on PC, ports to console, and never needs re
 
 [![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
 
+### 🚀 Status: v0.2.4 Live
+**Milestone:** Phase 1 (Security Foundation) — **Complete** ✅  
+**Latest News:** [Establishing the Firewall Standard (Feb 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
 ## Why BridgeMod Exists
 
 We believe:
