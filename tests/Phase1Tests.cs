@@ -1,389 +1,192 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using BridgeMod.Data;
-using BridgeMod.Runtime;
-using Newtonsoft.Json.Linq;
+using BridgeMod.Bridge;
 using Xunit;
 
 namespace BridgeMod.Tests
 {
-    public class ModManifestTests
+    public class ModBridgeValidationTests
     {
+        private static ModBridge CreateBridge(int maxStat = 9999) =>
+            new ModBridge(new BridgeConfig { MaxStatValue = maxStat, EnableAuditLog = true });
+
         [Fact]
-        public void ValidManifest_ShouldPassValidation()
+        public void ValidPayload_ShouldPass()
         {
-            var manifest = new ModManifest
+            var bridge = CreateBridge();
+            var payload = new Dictionary<string, object>
             {
-                Name = "TestMod",
-                Version = "1.0.0",
-                Author = "TestAuthor",
-                ModType = ModType.Data,
-                Files = new[] { "data/config.json" }
+                { "name", "IronSword" },
+                { "health", 100 }
             };
 
-            var isValid = manifest.IsValid(out var errors);
+            var result = bridge.Validate(payload, "test-001");
 
-            Assert.True(isValid);
-            Assert.Empty(errors);
+            Assert.True(result.IsValid);
+            Assert.NotNull(result.SanitizedPayload);
+            Assert.Null(result.ErrorCode);
         }
 
         [Fact]
-        public void ManifestWithoutName_ShouldFail()
+        public void ScriptInjection_ShouldBeRejected()
         {
-            var manifest = new ModManifest
+            var bridge = CreateBridge();
+            var payload = new Dictionary<string, object>
             {
-                Name = "",
-                Version = "1.0.0",
-                Author = "TestAuthor",
-                ModType = ModType.Data,
-                Files = new[] { "data/config.json" }
+                { "name", "<script>alert('xss')</script>" }
             };
 
-            var isValid = manifest.IsValid(out var errors);
+            var result = bridge.Validate(payload, "test-002");
 
-            Assert.False(isValid);
-            Assert.Contains(errors, e => e.Contains("name"));
+            Assert.False(result.IsValid);
+            Assert.Equal(ErrorCodes.ParseErr001, result.ErrorCode);
+            Assert.Null(result.SanitizedPayload);
         }
 
         [Fact]
-        public void ManifestWithInvalidVersion_ShouldFail()
+        public void ScriptInjection_ShouldBeAuditLogged()
         {
-            var manifest = new ModManifest
+            var bridge = CreateBridge();
+            var payload = new Dictionary<string, object>
             {
-                Name = "TestMod",
-                Version = "invalid",
-                Author = "TestAuthor",
-                ModType = ModType.Data,
-                Files = new[] { "data/config.json" }
+                { "name", "<b>bold injection</b>" }
             };
 
-            var isValid = manifest.IsValid(out var errors);
+            bridge.Validate(payload, "test-003");
 
-            Assert.False(isValid);
-            Assert.Contains(errors, e => e.Contains("version") || e.Contains("semantic"));
+            Assert.True(bridge.Logger.HasCode(ErrorCodes.ParseErr001));
         }
 
         [Fact]
-        public void ManifestWithEmptyFiles_ShouldFail()
+        public void OutOfBoundsStat_ShouldBeClamped()
         {
-            var manifest = new ModManifest
+            var bridge = CreateBridge(maxStat: 9999);
+            var payload = new Dictionary<string, object>
             {
-                Name = "TestMod",
-                Version = "1.0.0",
-                Author = "TestAuthor",
-                ModType = ModType.Data,
-                Files = new string[] { }
+                { "health", 999999 }
             };
 
-            var isValid = manifest.IsValid(out var errors);
+            var result = bridge.Validate(payload, "test-004");
 
-            Assert.False(isValid);
-            Assert.Contains(errors, e => e.Contains("files"));
-        }
-    }
-
-    public class ModVersionTests
-    {
-        [Fact]
-        public void ValidSemanticVersion_ShouldParse()
-        {
-            var result = ModVersion.TryParse("1.2.3", out var version);
-
-            Assert.True(result);
-            Assert.NotNull(version);
-            Assert.Equal(1, version.Major);
-            Assert.Equal(2, version.Minor);
-            Assert.Equal(3, version.Patch);
+            Assert.True(result.IsValid);
+            Assert.NotNull(result.SanitizedPayload);
+            Assert.Equal(9999, result.SanitizedPayload!["health"]);
         }
 
         [Fact]
-        public void InvalidVersion_ShouldNotParse()
+        public void OutOfBoundsStat_ShouldBeAuditLogged()
         {
-            var result = ModVersion.TryParse("invalid", out var version);
-
-            Assert.False(result);
-            Assert.Null(version);
-        }
-
-        [Fact]
-        public void CompatibilityCheck_ShouldWork()
-        {
-            var v1_2_0 = ModVersion.TryParse("1.2.0", out var version1) ? version1! : null;
-            var v1_0_0 = ModVersion.TryParse("1.0.0", out var version2) ? version2! : null;
-
-            Assert.NotNull(v1_2_0);
-            Assert.NotNull(v1_0_0);
-            Assert.True(v1_2_0.IsCompatibleWith(v1_0_0));
-        }
-
-        [Fact]
-        public void ModDependencyParsing_ShouldWork()
-        {
-            var result = ModVersion.TryParseModDependency("SomeMod@1.5.0", out var modName, out var version);
-
-            Assert.True(result);
-            Assert.Equal("SomeMod", modName);
-            Assert.NotNull(version);
-            Assert.Equal(1, version.Major);
-        }
-    }
-
-    public class ModSchemaTests
-    {
-        [Fact]
-        public void DataSchema_ShouldValidateCorrectData()
-        {
-            var schema = new ModSchema("TestSchema", ModType.Data);
-            schema.Fields["type"] = new FieldSchema("type", FieldType.String) { IsRequired = true };
-            schema.Fields["value"] = new FieldSchema("value", FieldType.Number) { IsRequired = true };
-
-            var data = JObject.Parse(@"{ ""type"": ""weapon"", ""value"": 10 }");
-
-            var isValid = schema.Validate(data, out var errors);
-
-            Assert.True(isValid);
-            Assert.Empty(errors);
-        }
-
-        [Fact]
-        public void SchemaValidation_ShouldRejectMissingRequired()
-        {
-            var schema = new ModSchema("TestSchema", ModType.Data);
-            schema.Fields["required_field"] = new FieldSchema("required_field", FieldType.String) { IsRequired = true };
-
-            var data = JObject.Parse(@"{ }");
-
-            var isValid = schema.Validate(data, out var errors);
-
-            Assert.False(isValid);
-            Assert.Contains(errors, e => e.Contains("required_field"));
-        }
-
-        [Fact]
-        public void StringField_ShouldEnforceMaxLength()
-        {
-            var schema = new ModSchema("TestSchema", ModType.Data);
-            var field = new FieldSchema("name", FieldType.String) { MaxLength = 10 };
-
-            var tooLong = JToken.Parse(@"""this is a very long string""");
-            var isValid = field.Validate(tooLong, out var errors);
-
-            Assert.False(isValid);
-            Assert.Contains(errors, e => e.Contains("max length"));
-        }
-
-        [Fact]
-        public void NumberField_ShouldEnforceBounds()
-        {
-            var field = new FieldSchema("health", FieldType.Number)
+            var bridge = CreateBridge(maxStat: 100);
+            var payload = new Dictionary<string, object>
             {
-                NumericBounds = (0, 100)
+                { "health", 500 }
             };
 
-            var outOfBounds = JToken.Parse("150");
-            var isValid = field.Validate(outOfBounds, out var errors);
+            bridge.Validate(payload, "test-005");
 
-            Assert.False(isValid);
-            Assert.Contains(errors, e => e.Contains("bounds"));
+            Assert.True(bridge.Logger.HasCode(ErrorCodes.BoundClamp003));
         }
 
         [Fact]
-        public void BehaviorGraphValidation_ShouldCheckNodes()
+        public void StatAtMaxBoundary_ShouldNotBeClamped()
         {
-            var schema = new ModSchema("BehaviorGraph", ModType.BehaviorGraph)
+            var bridge = CreateBridge(maxStat: 100);
+            var payload = new Dictionary<string, object>
             {
-                MaxNodeCount = 10
+                { "health", 100 }
             };
 
-            var graph = JObject.Parse(@"{
-                ""nodes"": [
-                    { ""id"": ""node1"" },
-                    { ""id"": ""node2"" }
-                ],
-                ""edges"": [
-                    { ""from"": ""node1"", ""to"": ""node2"" }
-                ]
-            }");
+            var result = bridge.Validate(payload, "test-006");
 
-            var isValid = schema.ValidateBehaviorGraph(graph, out var errors);
-
-            Assert.True(isValid);
-            Assert.Empty(errors);
+            Assert.True(result.IsValid);
+            Assert.False(bridge.Logger.HasCode(ErrorCodes.BoundClamp003));
         }
 
         [Fact]
-        public void BehaviorGraphValidation_ShouldRejectInvalidEdges()
+        public void MultipleStatsClamped_ShouldAllBeFixed()
         {
-            var schema = new ModSchema("BehaviorGraph", ModType.BehaviorGraph);
-
-            var graph = JObject.Parse(@"{
-                ""nodes"": [
-                    { ""id"": ""node1"" }
-                ],
-                ""edges"": [
-                    { ""from"": ""node1"", ""to"": ""nonexistent"" }
-                ]
-            }");
-
-            var isValid = schema.ValidateBehaviorGraph(graph, out var errors);
-
-            Assert.False(isValid);
-            Assert.Contains(errors, e => e.Contains("nonexistent"));
-        }
-
-        [Fact]
-        public void BehaviorGraphValidation_ShouldEnforceNodeLimit()
-        {
-            var schema = new ModSchema("BehaviorGraph", ModType.BehaviorGraph)
+            var bridge = CreateBridge(maxStat: 50);
+            var payload = new Dictionary<string, object>
             {
-                MaxNodeCount = 2
+                { "health", 200 },
+                { "mana", 300 },
+                { "strength", 1000 }
             };
 
-            var graph = JObject.Parse(@"{
-                ""nodes"": [
-                    { ""id"": ""node1"" },
-                    { ""id"": ""node2"" },
-                    { ""id"": ""node3"" }
-                ],
-                ""edges"": []
-            }");
+            var result = bridge.Validate(payload, "test-007");
 
-            var isValid = schema.ValidateBehaviorGraph(graph, out var errors);
-
-            Assert.False(isValid);
-            Assert.Contains(errors, e => e.Contains("exceeds maximum node count"));
-        }
-    }
-
-    public class ExecutionGuardsTests
-    {
-        [Fact]
-        public void DisableMod_ShouldTrackDisabledMods()
-        {
-            var guards = new ExecutionGuards();
-            guards.DisableMod("mod.zip", "Test error");
-
-            Assert.True(guards.IsModDisabled("mod.zip"));
+            Assert.True(result.IsValid);
+            Assert.Equal(50, result.SanitizedPayload!["health"]);
+            Assert.Equal(50, result.SanitizedPayload["mana"]);
+            Assert.Equal(50, result.SanitizedPayload["strength"]);
         }
 
         [Fact]
-        public void DisabledModsList_ShouldReturnAllDisabled()
+        public void AuditLog_TracksEntriesInOrder()
         {
-            var guards = new ExecutionGuards();
-            guards.DisableMod("mod1.zip", "Error 1");
-            guards.DisableMod("mod2.zip", "Error 2");
+            var bridge = CreateBridge(maxStat: 10);
+            var payload = new Dictionary<string, object>
+            {
+                { "health", 999 }
+            };
 
-            var disabled = guards.GetDisabledMods().ToList();
+            bridge.Validate(payload, "test-008");
 
-            Assert.Equal(2, disabled.Count);
+            Assert.NotEmpty(bridge.Logger.Entries);
+            Assert.Contains("test-008", bridge.Logger.Entries[0]);
         }
 
         [Fact]
-        public void ValidateFilePath_ShouldAllowSandboxAccess()
+        public void DisabledAuditLog_ShouldNotRecord()
         {
-            var guards = new ExecutionGuards();
-            var sandbox = Path.Combine(Path.GetTempPath(), "mods");
+            var bridge = new ModBridge(new BridgeConfig
+            {
+                MaxStatValue = 10,
+                EnableAuditLog = false
+            });
+            var payload = new Dictionary<string, object>
+            {
+                { "health", 999 }
+            };
 
-            var result = guards.ValidateFilePath(
-                Path.Combine(sandbox, "data.json"),
-                sandbox);
+            bridge.Validate(payload, "test-009");
 
-            Assert.True(result);
+            Assert.Empty(bridge.Logger.Entries);
         }
 
         [Fact]
-        public void ValidateFilePath_ShouldBlockEscapeSandbox()
+        public void EmptyPayload_ShouldPass()
         {
-            var guards = new ExecutionGuards();
-            var sandbox = Path.Combine(Path.GetTempPath(), "mods");
+            var bridge = CreateBridge();
+            var result = bridge.Validate(new Dictionary<string, object>(), "test-010");
 
-            var result = guards.ValidateFilePath(
-                Path.Combine(Path.GetTempPath(), "../../etc/passwd"),
-                sandbox);
-
-            Assert.False(result);
+            Assert.True(result.IsValid);
+            Assert.NotNull(result.SanitizedPayload);
         }
 
         [Fact]
-        public void ValidateParameterBounds_ShouldPassInRange()
+        public void HtmlTagInBody_ShouldBeRejected()
         {
-            var guards = new ExecutionGuards();
+            var bridge = CreateBridge();
+            var payload = new Dictionary<string, object>
+            {
+                { "description", "<img src=x onerror=alert(1)>" }
+            };
 
-            var result = guards.ValidateParameterBounds(50, 0, 100);
+            var result = bridge.Validate(payload, "test-011");
 
-            Assert.True(result);
+            Assert.False(result.IsValid);
+            Assert.Equal(ErrorCodes.ParseErr001, result.ErrorCode);
         }
 
         [Fact]
-        public void ValidateParameterBounds_ShouldFailOutOfRange()
+        public void BridgeConfig_DefaultsAreCorrect()
         {
-            var guards = new ExecutionGuards();
+            var config = new BridgeConfig();
 
-            var result = guards.ValidateParameterBounds(150, 0, 100);
-
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void ExecutionContext_ShouldTrackElapsedTime()
-        {
-            var guards = new ExecutionGuards();
-            var context = guards.CreateExecutionContext("TestMod");
-
-            System.Threading.Thread.Sleep(10);
-            context.Complete();
-
-            Assert.True(context.ElapsedTime.TotalMilliseconds >= 10);
-        }
-
-        [Fact]
-        public void ExecutionContext_ShouldDetectTimeout()
-        {
-            var guards = new ExecutionGuards();
-            var context = guards.CreateExecutionContext("TestMod", 10);
-
-            System.Threading.Thread.Sleep(50);
-
-            Assert.True(context.IsTimedOut);
-        }
-    }
-
-    public class ModSurfaceDeclarationTests
-    {
-        [Fact]
-        public void DeclareSurface_ShouldAddToList()
-        {
-            var declaration = new PublicAPI.ModSurfaceDeclaration("TestGame", "1.0.0");
-            declaration.DeclareDataSurface("GameBalance", "Balance changes", "data/balance.json");
-
-            Assert.Single(declaration.Surfaces);
-            Assert.Equal("GameBalance", declaration.Surfaces[0].Name);
-        }
-
-        [Fact]
-        public void GenerateSurfaceSummary_ShouldCreateMarkdown()
-        {
-            var declaration = new PublicAPI.ModSurfaceDeclaration("TestGame", "1.0.0");
-            declaration.DeclareDataSurface("Config", "Configuration", "data/config.json");
-
-            var summary = declaration.GenerateSurfaceSummary();
-
-            Assert.Contains("TestGame", summary);
-            Assert.Contains("Config", summary);
-        }
-
-        [Fact]
-        public void ExportAsJson_ShouldSerialize()
-        {
-            var declaration = new PublicAPI.ModSurfaceDeclaration("TestGame", "1.0.0");
-            declaration.DeclareDataSurface("Data", "Data mod", "data/data.json");
-
-            var json = declaration.ExportAsJson();
-
-            Assert.NotEmpty(json);
-            Assert.Contains("TestGame", json);
+            Assert.Equal(9999, config.MaxStatValue);
+            Assert.Equal(0, config.MinStatValue);
+            Assert.True(config.EnableAuditLog);
+            Assert.Null(config.AuditLogPath);
         }
     }
 }
