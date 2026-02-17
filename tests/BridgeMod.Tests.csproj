@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\sdk\BridgeMod.SDK.csproj" />
+    <ProjectReference Include="..\src\BridgeMod.SDK\BridgeMod.SDK.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,9 +8,9 @@ BridgeMod is a C#/.NET SDK for developer-controlled, safety-first game mod loadi
 - **Domain:** Game modding SDK/runtime + documentation + tooling
 - **Language/Runtime:** C# on .NET 10.0 (published package supports net10.0)
 - **License:** MIT
-- **Current Version:** v0.2.0 (Confidence Update) — LIVE on NuGet and GitHub
+- **Current Version:** v0.2.4 (Firewall Standard) — LIVE on NuGet and GitHub
 - **Repository:** https://github.com/rootedresilientshop-pixel/BridgeMod
-- **NuGet:** https://www.nuget.org/packages/BridgeMod.SDK/0.2.0
+- **NuGet:** https://www.nuget.org/packages/BridgeMod.SDK/0.2.4
 
 ## Goals (Supported by Current Implementation)
 
@@ -33,8 +33,8 @@ BridgeMod is a C#/.NET SDK for developer-controlled, safety-first game mod loadi
 
 | Phase | Status | Focus | Target |
 |-------|--------|-------|--------|
-| **Phase 1** | ✅ Complete | Foundation: Data mods, validation, safety | v0.1.0 |
-| **Phase 2** | 🔜 Next | Enhanced surfaces, versioning, capability matrix | v0.3.0 |
+| **Phase 1** | ✅ Complete | Security Foundation: "Firewall Standard" — 3-gate C# validation pipeline, Audit Logging, Air-Gap architecture | v0.2.4 |
+| **Phase 2** | 🔜 Next | Schema Registry: auto-generate C# validation rules from Python engine definitions, external AuditLogger export | v0.3.0 |
 | **Phase 3** | 🔄 Planned | Behavior graph runtime (state machines, AI) | v0.4.0 |
 | **Phase 4** | 📋 Planned | Procedural control layer | v0.5.0 |
 | **Phase 5** | 📋 Planned | Cloud validation services | v0.6.0+ |
@@ -48,23 +48,28 @@ BridgeMod is a C#/.NET SDK for developer-controlled, safety-first game mod loadi
 - **Developer Control:** Game devs explicitly declare what's moddable
 - **Production-Ready:** v0.2.0 ships with zero compiler warnings, 26/26 tests passing
 
-## What v0.2.0 Delivered (Confidence Update)
+## What v0.2.4 Delivered (Firewall Standard)
 
-### Problems Fixed
-- ✅ Framework alignment (net10.0 consistent everywhere)
-- ✅ Build reliability (solution builds cleanly, no tool project errors)
-- ✅ CI workflow updated (.NET 10.0, solution-level testing)
-- ✅ Documentation accuracy (phantom APIs removed, version refs updated)
-- ✅ Compiler warnings eliminated (50+ warnings → 0)
-- ✅ XML documentation complete (all public members documented)
-- ✅ Repository hygiene (internal docs organized, README embedded in package)
+### Architecture
+- ✅ "Firewall Standard" — 3-gate C# validation pipeline: Type Check → Boundary Guards → Audit Logging
+- ✅ "Air-Gap" security: C# SDK validates data; Python Engine only consumes scrubbed JSON
+- ✅ Python Engine falls back to safe defaults if the SDK blocks a mod
+- ✅ Malicious input (script injection) blocked without crashing the Python engine
+- ✅ Out-of-bounds stats (999999+ health) clamped via configurable BridgeConfig boundary guards
+- ✅ Audit logging operational
+
+### Repository Structure
+```
+/src/BridgeMod.SDK          — Authoritative C# library (single source of truth)
+/src/DreamCraft.Engine       — Isolated Python simulation core
+/samples/Legacies_Bridge_Test — End-to-end integration proof
+```
 
 ### Quality Metrics
 - ✅ 0 build errors, 0 compiler warnings (Release build)
 - ✅ 26/26 tests passing
 - ✅ 100% public API documented
-- ✅ Full backward compatibility with v0.1.0
-- ✅ Production-ready for console deployment
+- ✅ NuGet v0.2.4 published and verified
 
 ## Stakeholders & Audiences
 
@@ -84,6 +89,10 @@ BridgeMod is a C#/.NET SDK for developer-controlled, safety-first game mod loadi
    - Need: Multi-platform mod support (PC + console parity)
    - Solve: Same code everywhere, platform abstraction
 
+## Branding
+
+**"Firewall Standard"** is BridgeMod's unique selling point for console-compliant modding. The 3-gate pipeline (Type Check → Boundary Guards → Audit Logging) is the core identity differentiator.
+
 ## Next Major Milestone
 
-**v0.3.0 (Phase 2):** Enhanced mod surfaces with versioning, capability matrix generation, and improved documentation discovery. Contingent on developer feedback from Phase 1 v0.2.0 adoption.
+**v0.3.0 (Phase 2 — Schema Registry):** Auto-generate C# validation rules from Python engine definitions. Expand AuditLogger to support external file export.

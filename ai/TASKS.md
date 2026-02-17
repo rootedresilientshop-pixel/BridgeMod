@@ -1,4 +1,4 @@
-# Tasks: BridgeMod v0.2.0+ (Active & Planned)
+# Tasks: BridgeMod v0.2.4+ (Active & Planned)
 
 ## Completed (v0.2.0 - Confidence Update)
 
@@ -32,7 +32,7 @@
 - [x] Eliminate XML documentation warnings (CS1591)
 - [x] Achieve zero warnings in Release build
 
-### ✅ Phase 6: Release Prepared
+### ✅ Phase 6: Release Prepared (v0.2.0)
 - [x] Update CHANGELOG.md with v0.2.0 entry
 - [x] Create comprehensive git commit
 - [x] Tag v0.2.0 and push to remote
@@ -41,7 +41,37 @@
 
 ---
 
-## Active (Post-Release v0.2.0)
+## ✅ Phase 1: Security Foundation — 100% COMPLETE (v0.2.4)
+
+### ✅ Firewall Standard Architecture
+- [x] Design and implement 3-gate C# validation pipeline (Type Check → Boundary Guards → Audit Logging)
+- [x] Implement `BridgeConfig` for configurable boundary guards
+- [x] Implement `AuditLogger` (in-memory, operational)
+- [x] Verify script injection is blocked without crashing the Python engine
+- [x] Verify out-of-bounds stats (999999+ health) are clamped
+
+### ✅ Air-Gap Architecture
+- [x] Isolate `DreamCraft.Engine` (Python) from raw mod data
+- [x] Ensure Python Engine only consumes scrubbed JSON from C# SDK
+- [x] Implement safe defaults in Python Engine when SDK blocks a mod
+
+### ✅ Repository Overhaul (v0.2.4)
+- [x] Move to professional `/src/` + `/samples/` layout
+- [x] Replace legacy `/sdk/` with `/src/BridgeMod.SDK` as single source of truth
+- [x] Create `/src/DreamCraft.Engine` (isolated Python core)
+- [x] Create `/samples/Legacies_Bridge_Test` (end-to-end integration proof)
+- [x] Publish BridgeMod.SDK v0.2.4 to NuGet and verify NuGet sync
+
+---
+
+## Active (Phase 2 — Schema Registry)
+
+### 🔥 Schema Registry (TOP PRIORITY — Phase 2 Start)
+- [ ] Design schema registry architecture: how Python engine definitions map to C# validation rules
+- [ ] Build a tool to auto-generate C# validation rules from Python engine definitions
+- [ ] Expand `AuditLogger` to support external file export (write audit logs to disk)
+- [ ] Write tests covering schema registry validation paths
+- [ ] Update docs to reflect new Schema Registry tooling
 
 ### 📊 Gathering Feedback (In Progress)
 - [ ] Post on Reddit (r/csharp, r/gamedev, r/Unity, r/godot)
@@ -61,7 +91,7 @@
 
 ---
 
-## Pending: Phase 2 (Contingent on Feedback)
+## Pending: Phase 2 Remainder (After Schema Registry)
 
 ### 🔄 Enhanced Mod Surfaces
 - [ ] Design surface versioning system
@@ -79,7 +109,7 @@
 ### 📊 Go/No-Go Decision Point
 - **Go if:** 20+ downloads/week AND at least 3 "we're using this" confirmations
 - **No-go if:** Downloads trending downward AND no community engagement
-- **Timeline:** Review after 1 month of v0.2.0 being live (mid-March 2026)
+- **Timeline:** Review after 1 month of v0.2.4 being live
 
 ---
 

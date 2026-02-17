@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sdk", "sdk", "{A1C2D4F6-8E9A-4B5C-6D7E-8F9A0B1C2D3E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A1C2D4F6-8E9A-4B5C-6D7E-8F9A0B1C2D3E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{B2D3E5F7-9F0A-5C6D-7E8F-9F0A1B2C3D4E}"
 EndProject
@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{D4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E5F6H8I0-2F3D-8F9G-0F1I-2F3D4E5F6G7H}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BridgeMod.SDK", "sdk\BridgeMod.SDK.csproj", "{F6G7I9J1-3F4E-9G0H-1F2J-3F4E5F6G7H8I}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BridgeMod.SDK", "src\BridgeMod.SDK\BridgeMod.SDK.csproj", "{F6G7I9J1-3F4E-9G0H-1F2J-3F4E5F6G7H8I}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BridgeMod.Tests", "tests\BridgeMod.Tests.csproj", "{G7H8J0K2-4F5F-0H1I-2F3K-4F5F6G7H8I9J}"
 EndProject

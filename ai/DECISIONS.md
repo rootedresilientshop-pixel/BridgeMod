@@ -91,6 +91,42 @@ This file documents key decisions—both architectural (embedded in code) and pr
 
 **Rationale:** Builds confidence that code is production-ready and maintainable.
 
+## Security Architecture Decision (v0.2.4)
+
+**Decision:** Implement the "Firewall Standard" — a 3-gate C# validation pipeline as the core SDK architecture.
+
+**Pipeline:**
+1. **Type Check** — Validates input shape and types
+2. **Boundary Guards** — Configurable via `BridgeConfig`; clamps out-of-bounds values (e.g., health 999999+ → clamped)
+3. **Audit Logging** — Records all validation decisions for traceability
+
+**Rationale:** A single, predictable pipeline is easier to certify for console compliance and easier to reason about than ad-hoc validation scattered across the codebase.
+
+## Air-Gap Strategy Decision (v0.2.4)
+
+**Decision:** The C# SDK validates all data before it reaches the Python simulation engine. The Python Engine only consumes "scrubbed" JSON.
+
+**Rationale:** Isolates the two runtimes. Even if a mod contains malicious input (script injection, extreme values), the Python Engine never sees raw mod data. The Engine falls back to safe defaults if the SDK blocks a mod, preventing crashes.
+
+**Implication:** Two-layer architecture is now the required pattern. Any future engine integrations must follow the same scrubbed-input contract.
+
+## Repository Layout Decision (v0.2.4)
+
+**Decision:** Replaced legacy `/sdk/` with a professional `/src/` + `/samples/` layout.
+
+**New Structure:**
+- `/src/BridgeMod.SDK` — Authoritative C# library (single source of truth, prevents version drift)
+- `/src/DreamCraft.Engine` — Isolated Python simulation core
+- `/samples/Legacies_Bridge_Test` — End-to-end integration proof
+
+**Rationale:** Separates source code from samples, aligns with open-source conventions, and ensures the SDK is the single source of truth. Eliminates risk of developers importing from legacy `/sdk/` path.
+
+## Branding Decision (v0.2.4)
+
+**Decision:** Establish "Firewall Standard" as BridgeMod's unique selling point for console-compliant modding.
+
+**Rationale:** Console publishers need auditable, sandbox-safe, offline-capable mod systems. "Firewall Standard" is a memorable, specific claim that differentiates BridgeMod from generic mod SDKs. Every public-facing communication should reference the 3-gate pipeline.
+
 ## Unresolved Decisions (For Future Phases)
 
 1. **Phase 3 Behavior Graphs:** Will BridgeMod provide graph executor or expect games to implement? (Planned to implement)
