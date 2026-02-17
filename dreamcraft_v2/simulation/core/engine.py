@@ -1,30 +1,27 @@
-"""Core simulation engine for daily world progression."""
+"""Core pulse engine for DreamCraft: Legacies v2."""
 
 from __future__ import annotations
 
 import json
 import logging
-import random
+import os
 import time
-from collections import defaultdict
+from pathlib import Path
 from typing import Any
 
 from dreamcraft_v2.data.database import DatabaseManager
 from dreamcraft_v2.llm.client import LLMClient
-from dreamcraft_v2.simulation.characters.character import (
-    Character,
-    deterministic_decision,
-    get_personality_prompt,
-    process_needs,
-)
+from dreamcraft_v2.scribe_service import ScribeService
+from dreamcraft_v2.simulation.characters.character import Character, deterministic_decision
 from dreamcraft_v2.simulation.config import Settings
-from dreamcraft_v2.simulation.events.event_manager import EventManager, EventType
+from dreamcraft_v2.simulation.events.event_manager import EventManager
+from dreamcraft_v2.vault_manager import VaultManager
 
 LOGGER = logging.getLogger(__name__)
 
 
 class SimulationEngine:
-    """Orchestrates all phases of a simulation day."""
+    """Run staged world pulses with a systemic priority queue."""
 
     def __init__(
         self,
@@ -33,7 +30,6 @@ class SimulationEngine:
         event_manager: EventManager,
         settings: Settings,
     ) -> None:
-        """Create a simulation engine."""
         self.database = database
         self.llm_client = llm_client
         self.event_manager = event_manager
@@ -41,720 +37,619 @@ class SimulationEngine:
         self._tick = 0
 
     async def run_day(self, day_number: int) -> dict[str, Any]:
-        """Run all simulation phases for a day and return summary stats."""
-        self._tick = 0
-        self._rng = self._rng_for_day(day_number)  # For fallback methods
-        summary: dict[str, Any] = {"day": day_number, "events": 0, "llm_calls": 0}
+        """Backwards-compatible alias to the pulse pipeline."""
+        return await self.run_pulse(day_number)
 
-        await self._timed_phase(
+    async def run_pulse(self, day_number: int) -> dict[str, Any]:
+        """Run a full staged pulse: entropy, threat impact, actions, and scribe."""
+        self._tick = 0
+        summary: dict[str, Any] = {
+            "day": day_number,
+            "stages": {},
+            "actions": {"level_0": 0, "level_1": 0, "level_2": 0},
+            "llm_calls": 0,
+            "events": 0,
+        }
+
+        stage_a = await self._run_stage(day_number, "stage_a_entropy", self._stage_world_entropy)
+        summary["stages"]["A"] = stage_a
+
+        stage_b = await self._run_stage(day_number, "stage_b_threat_impact", self._stage_threat_impact)
+        summary["stages"]["B"] = stage_b
+
+        stage_c = await self._run_stage(day_number, "stage_c_action_resolution", self._stage_action_resolution)
+        summary["stages"]["C"] = stage_c
+        summary["actions"] = stage_c.get("actions", summary["actions"])
+        summary["llm_calls"] = int(stage_c.get("llm_calls", 0))
+
+        stage_d = await self._run_stage(
             day_number,
-            "world_state",
-            lambda: self.update_world_state(day_number),
+            "stage_d_scribe",
+            lambda d: self._stage_scribe(d, summary),
         )
-        await self._timed_phase(
-            day_number,
-            "needs",
-            lambda: self.process_character_needs(day_number),
-        )
-        await self._timed_phase(
-            day_number,
-            "movement",
-            lambda: self.process_character_movement(day_number),
-        )
-        await self._timed_phase(
-            day_number,
-            "interactions",
-            lambda: self.process_interactions_by_location(day_number),
-        )
-        await self._timed_phase(
-            day_number,
-            "relationship_updates",
-            lambda: self.update_relationships_from_events(day_number),
-        )
-        await self._timed_phase(
-            day_number,
-            "politics",
-            lambda: self.process_faction_politics(day_number),
-        )
-        await self._timed_phase(
-            day_number,
-            "combat",
-            lambda: self.process_combat_encounters(day_number),
-        )
-        await self._timed_phase(
-            day_number,
-            "event_flagging",
-            lambda: self.generate_events_with_flagging(day_number),
-        )
-        decision_queue = await self._timed_phase(
-            day_number,
-            "decision_queue",
-            lambda: self.queue_llm_decision_requests(day_number),
-        )
-        applied = await self._timed_phase(
-            day_number,
-            "decision_apply",
-            lambda: self.apply_llm_decisions(day_number, decision_queue),
-        )
-        await self._timed_phase(
-            day_number,
-            "summary_log",
-            lambda: self.log_simulation_results(day_number, applied),
-        )
+        summary["stages"]["D"] = stage_d
 
         events = await self.database.get_events_for_day(day_number)
         summary["events"] = len(events)
-        summary["llm_calls"] = int(applied.get("llm_calls", 0))
+        await self.database.log_simulation(
+            day_number,
+            "pulse_summary",
+            json.dumps(summary, default=str),
+            duration_ms=None,
+        )
         return summary
 
-    async def update_world_state(self, day_number: int) -> None:
-        """Set season/weather/time metadata for the current day."""
-        season = self._season_for_day(day_number)
-        weather = self._weather_for_day(day_number)
-        alive = await self.database.fetch_one(
-            "SELECT COUNT(*) AS count FROM characters WHERE status != 'dead'"
+    async def _run_stage(
+        self,
+        day_number: int,
+        phase: str,
+        stage_callable: Any,
+    ) -> dict[str, Any]:
+        started = time.perf_counter()
+        result = await stage_callable(day_number)
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        await self.database.log_simulation(
+            day_number,
+            phase,
+            f"{phase} complete",
+            duration_ms=duration_ms,
         )
-        dead = await self.database.fetch_one(
-            "SELECT COUNT(*) AS count FROM characters WHERE status = 'dead'"
-        )
-        await self.database.insert_world_state(
-            day=day_number,
-            season=season,
-            weather=weather,
-            time_of_day="morning",
-            global_events={"note": f"Day {day_number} initialized"},
-            resource_levels={"food": max(0, 100 - (day_number % 15))},
-            population_alive=int((alive or {}).get("count", 0)),
-            population_dead=int((dead or {}).get("count", 0)),
+        payload = dict(result)
+        payload["duration_ms"] = duration_ms
+        return payload
+
+    async def _stage_world_entropy(self, day_number: int) -> dict[str, Any]:
+        """Stage A: increment character needs and decay region prosperity."""
+        rows = await self.database.fetch_all(
+            """
+            SELECT id, health, hunger, energy, status, location_id
+            FROM characters
+            WHERE status IN ('alive', 'injured', 'unconscious')
+            """
         )
 
-    async def process_character_needs(self, day_number: int) -> None:
-        """Advance hunger/energy/health for all living characters."""
-        rows = await self.database.get_alive_characters()
+        dead_now = 0
         for row in rows:
-            character = process_needs(Character.from_row(row))
+            health = int(row.get("health", 100))
+            hunger = min(100, int(row.get("hunger", 0)) + 8)
+            energy = max(0, int(row.get("energy", 100)) - 6)
+            exhaustion = 100 - energy
+
+            if hunger >= 80:
+                health = max(0, health - 5)
+            else:
+                health = min(100, health + 1)
+
+            if health <= 0:
+                status = "dead"
+                dead_now += 1
+            elif exhaustion > 85:
+                status = "unconscious"
+            elif health < 35:
+                status = "injured"
+            else:
+                status = "alive"
+
+            await self.database.update_character_state(
+                int(row["id"]),
+                health=health,
+                hunger=hunger,
+                energy=energy,
+                location_id=row.get("location_id"),
+                status=status,
+            )
+
+        await self.database.execute(
+            """
+            UPDATE regions
+            SET prosperity = MAX(0, prosperity - 1),
+                danger_level = MIN(
+                    10,
+                    danger_level + CASE
+                        WHEN EXISTS (
+                            SELECT 1 FROM threats t
+                            WHERE t.region_id = regions.id AND t.is_active = 1
+                        ) THEN 1
+                        ELSE 0
+                    END
+                )
+            """
+        )
+
+        alive_count_row = await self.database.fetch_one(
+            "SELECT COUNT(*) AS count FROM characters WHERE status != 'dead'"
+        )
+        dead_count_row = await self.database.fetch_one(
+            "SELECT COUNT(*) AS count FROM characters WHERE status = 'dead'"
+        )
+        alive_count = int((alive_count_row or {}).get("count", 0))
+        dead_count = int((dead_count_row or {}).get("count", 0))
+
+        await self.database.execute(
+            """
+            INSERT INTO world_state (
+                day, day_number, season, weather, time_of_day,
+                global_events, resource_levels,
+                population_total, population_alive, population_dead, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(day) DO UPDATE SET
+                day_number = excluded.day_number,
+                season = excluded.season,
+                weather = excluded.weather,
+                time_of_day = excluded.time_of_day,
+                global_events = excluded.global_events,
+                resource_levels = excluded.resource_levels,
+                population_total = excluded.population_total,
+                population_alive = excluded.population_alive,
+                population_dead = excluded.population_dead,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (
+                day_number,
+                day_number,
+                self._season_for_day(day_number),
+                self._weather_for_day(day_number),
+                "morning",
+                json.dumps({"pulse": day_number}),
+                json.dumps({"entropy_step": 1}),
+                alive_count + dead_count,
+                alive_count,
+                dead_count,
+            ),
+        )
+        return {
+            "characters_processed": len(rows),
+            "new_deaths": dead_now,
+            "population_alive": alive_count,
+            "population_dead": dead_count,
+        }
+
+    async def _stage_threat_impact(self, day_number: int) -> dict[str, Any]:
+        """Stage B: apply threat extortion/tax impacts to infrastructure NPCs."""
+        threats = await self.database.fetch_all(
+            """
+            SELECT id, name, region_id
+            FROM threats
+            WHERE is_active = 1 AND region_id IS NOT NULL
+            """
+        )
+
+        impacted_npcs = 0
+        for threat in threats:
+            threat_id = int(threat["id"])
+            threat_name = str(threat["name"])
+            region_id = int(threat["region_id"])
+
+            npcs = await self.database.fetch_all(
+                """
+                SELECT id, role
+                FROM infrastructure_npcs
+                WHERE region_id = ? AND status = 'active'
+                """,
+                (region_id,),
+            )
+
+            for npc in npcs:
+                npc_id = int(npc["id"])
+                role = str(npc.get("role", "")).lower()
+                if role in {"blacksmith", "merchant", "innkeeper"}:
+                    impact_type = "extorted"
+                    impact_value = 20
+                    await self.database.execute(
+                        """
+                        UPDATE infrastructure_npcs
+                        SET extorted_by_threat_id = ?, updated_at = CURRENT_TIMESTAMP,
+                            notes = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            threat_id,
+                            f"{threat_name}: service_cost_modifier_pct=20",
+                            npc_id,
+                        ),
+                    )
+                else:
+                    impact_type = "impacted"
+                    impact_value = 10
+                    await self.database.execute(
+                        """
+                        UPDATE infrastructure_npcs
+                        SET impacted_by_threat_id = ?, updated_at = CURRENT_TIMESTAMP,
+                            notes = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            threat_id,
+                            f"{threat_name}: service_cost_modifier_pct=10",
+                            npc_id,
+                        ),
+                    )
+
+                await self.database.execute(
+                    """
+                    INSERT INTO infrastructure_npc_threat_history(
+                        infrastructure_npc_id, threat_id, impact_type,
+                        impact_value, is_active, started_day, details
+                    )
+                    VALUES (?, ?, ?, ?, 1, ?, ?)
+                    """,
+                    (
+                        npc_id,
+                        threat_id,
+                        impact_type,
+                        impact_value,
+                        day_number,
+                        f"Applied by Stage B from threat '{threat_name}'",
+                    ),
+                )
+                impacted_npcs += 1
+
+        return {"active_threats": len(threats), "impacted_npcs": impacted_npcs}
+
+    async def _stage_action_resolution(self, day_number: int) -> dict[str, Any]:
+        """Stage C: resolve Level 0/1/2 character actions."""
+        rows = await self.database.fetch_all(
+            """
+            SELECT
+                c.*,
+                l.region_id AS current_region_id,
+                f.name AS faction_name
+            FROM characters c
+            LEFT JOIN locations l ON l.id = c.location_id
+            LEFT JOIN factions f ON f.id = c.faction_id
+            WHERE c.status = 'alive'
+            ORDER BY c.id
+            """
+        )
+        world_state = await self.database.get_world_state(day_number)
+        llm_enabled = self.settings.simulation_burst_enabled and await self.llm_client.health_check()
+
+        actions = {"level_0": 0, "level_1": 0, "level_2": 0}
+        llm_calls = 0
+
+        for row in rows:
+            resolved = await self._resolve_character_action(
+                day_number=day_number,
+                character_row=row,
+                world_state=world_state or {},
+                llm_enabled=llm_enabled,
+            )
+            level_key = f"level_{resolved['level']}"
+            if level_key in actions:
+                actions[level_key] += 1
+            llm_calls += int(resolved.get("llm_calls", 0))
+
+        return {
+            "characters_resolved": len(rows),
+            "actions": actions,
+            "llm_calls": llm_calls,
+        }
+
+    async def _resolve_character_action(
+        self,
+        day_number: int,
+        character_row: dict[str, Any],
+        world_state: dict[str, Any],
+        llm_enabled: bool,
+    ) -> dict[str, Any]:
+        """Apply the systemic priority queue for one character."""
+        character = Character.from_row(character_row)
+        hunger = int(character_row.get("hunger", character.hunger))
+        energy = int(character_row.get("energy", character.energy))
+        exhaustion = 100 - energy
+
+        if hunger > 85 or exhaustion > 85:
+            if hunger > 85:
+                action = "forage_for_food"
+                new_hunger = max(0, hunger - 25)
+                new_energy = max(0, energy - 5)
+                description = f"{character.name} bypassed AI and foraged for food."
+            else:
+                action = "rest_at_inn"
+                new_hunger = min(100, hunger + 5)
+                new_energy = min(100, energy + 35)
+                description = f"{character.name} bypassed AI and rested immediately."
+
             await self.database.update_character_state(
                 character.id,
                 health=character.health,
-                hunger=character.hunger,
-                energy=character.energy,
+                hunger=new_hunger,
+                energy=new_energy,
                 location_id=character.location_id,
                 status=character.status,
             )
-            if character.status in {"injured", "dead", "unconscious"}:
-                severity = 9 if character.status == "dead" else 6
-                await self.event_manager.create_event(
-                    day=day_number,
-                    event_type=EventType.NEEDS if character.status != "dead" else EventType.DEATH,
-                    severity=severity,
-                    location=character.location_id,
-                    participants=[character.id],
-                    outcome={"status": character.status},
-                    description=f"{character.name} status changed to {character.status}",
-                    tick=self._next_tick(),
-                )
-
-    async def process_character_movement(self, day_number: int) -> None:
-        """Move characters via LLM decisions, batched by current location."""
-        from dreamcraft_v2.llm.parser import parse_json_response, validate_movement_response
-        from dreamcraft_v2.llm.prompts import movement_batch_prompt
-
-        locations_data = await self.database.get_locations()
-        if not locations_data:
-            return
-
-        # Build location lookup
-        location_map = {int(loc["id"]): loc for loc in locations_data}
-
-        # Group characters by current location
-        rows = await self.database.get_alive_characters()
-        grouped: dict[int | None, list[dict]] = defaultdict(list)
-        for row in rows:
-            grouped[row.get("location_id")].append(row)
-
-        # Process each location batch
-        for current_location_id, char_rows in grouped.items():
-            if not char_rows:
-                continue
-
-            # Get nearby locations (all except current)
-            nearby_locations = [
-                loc for loc in locations_data
-                if int(loc["id"]) != current_location_id
-            ]
-            if not nearby_locations:
-                continue
-
-            # Get current location info
-            current_location = location_map.get(current_location_id)
-            location_name = current_location["name"] if current_location else "Unknown"
-            location_type = current_location["type"] if current_location else "unknown"
-
-            # Build character data for prompt
-            char_data = [
-                {
-                    "name": char["name"],
-                    "race": char["race"],
-                    "class_type": char["class_type"],
-                    "health": char.get("health", 100),
-                    "hunger": char.get("hunger", 0),
-                    "energy": char.get("energy", 100),
-                    "goals": (
-                        json.loads(char["goals"])
-                        if isinstance(char.get("goals"), str)
-                        else (char.get("goals") or [])
-                    ),
-                }
-                for char in char_rows
-            ]
-
-            # Get LLM movement decisions
-            system_prompt, user_prompt = movement_batch_prompt(location_name, location_type, char_data, nearby_locations)
-            llm_response = await self.llm_client.make_completion(
-                prompt=user_prompt,
-                system_prompt=system_prompt,
+            await self._insert_event(
+                day_number,
+                "survival",
+                4,
+                character.location_id,
+                [character.id],
+                {"action": action, "priority_level": 0},
+                description,
             )
+            return {"level": 0, "llm_calls": 0}
 
-            # Parse and validate response
-            response_data = parse_json_response(llm_response) if llm_response else None
-            if not validate_movement_response(response_data):
-                # Fallback to deterministic movement
-                await self._process_movement_fallback(
-                    char_rows, current_location_id, day_number, locations_data
-                )
-                continue
+        threat = await self._active_threat_for_region(character_row.get("current_region_id"))
+        if threat:
+            health = int(character_row.get("health", character.health))
+            level = int(character_row.get("level", 1))
+            combat_ready = health >= 55 and energy >= 35
+            forced_action = "combat" if combat_ready else "stealth"
 
-            # Apply LLM decisions
-            decisions_map = {d["character_name"]: d["destination"] for d in response_data["decisions"]}
-
-            for char_row in char_rows:
-                character = Character.from_row(char_row)
-                original_location = character.location_id
-
-                # Find destination location by name
-                destination_location = next(
-                    (loc for loc in locations_data if loc["name"] == decisions_map.get(character.name)),
-                    None
-                )
-
-                if not destination_location:
-                    continue
-
-                destination_id = int(destination_location["id"])
-
-                if destination_id != original_location:
-                    character.location_id = destination_id
+            if forced_action == "combat":
+                threat_severity = int(threat.get("severity", 5))
+                score = health + energy + (level * 5)
+                threshold = 65 + (threat_severity * 4)
+                if score >= threshold:
+                    bounty = int(threat.get("bounty", 0))
+                    await self.database.execute(
+                        """
+                        UPDATE characters
+                        SET gold = gold + ?, experience = experience + 20
+                        WHERE id = ?
+                        """,
+                        (bounty, character.id),
+                    )
+                    if score - threshold >= 10:
+                        await self.database.execute(
+                            """
+                            UPDATE threats
+                            SET is_active = 0, resolved_day = ?, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ?
+                            """,
+                            (day_number, int(threat["id"])),
+                        )
+                    description = f"{character.name} forced a combat resolution against {threat['name']}."
+                    severity = 7
+                else:
+                    new_health = max(0, health - 15)
+                    new_energy = max(0, energy - 15)
+                    status = "dead" if new_health <= 0 else "injured"
                     await self.database.update_character_state(
                         character.id,
-                        health=character.health,
-                        hunger=character.hunger,
-                        energy=character.energy,
+                        health=new_health,
+                        hunger=min(100, hunger + 6),
+                        energy=new_energy,
                         location_id=character.location_id,
-                        status=character.status,
+                        status=status,
                     )
-                    await self.event_manager.create_event(
-                        day=day_number,
-                        event_type=EventType.MOVEMENT,
-                        severity=2,
-                        location=destination_id,
-                        participants=[character.id],
-                        outcome={"from": original_location, "to": destination_id},
-                        description=f"{character.name} moved to {destination_location['name']}",
-                        tick=self._next_tick(),
-                    )
-
-    async def _process_movement_fallback(
-        self,
-        char_rows: list[dict],
-        current_location_id: int | None,
-        day_number: int,
-        locations: list[dict],
-    ) -> None:
-        """Fallback movement when LLM unavailable."""
-        for row in char_rows:
-            character = Character.from_row(row)
-            location_ids = [int(loc["id"]) for loc in locations]
-
-            # Use deterministic fallback: needs-based movement
-            destination = deterministic_decision(
-                character, {"location_options": location_ids}
-            ).get("destination")
-
-            if destination != character.location_id:
-                character.location_id = int(destination) if destination is not None else None
+                    description = f"{character.name} failed a forced combat resolution against {threat['name']}."
+                    severity = 8
+            else:
                 await self.database.update_character_state(
                     character.id,
                     health=character.health,
-                    hunger=character.hunger,
-                    energy=character.energy,
+                    hunger=min(100, hunger + 6),
+                    energy=max(0, energy - 10),
                     location_id=character.location_id,
                     status=character.status,
                 )
-                await self.event_manager.create_event(
-                    day=day_number,
-                    event_type=EventType.MOVEMENT,
-                    severity=2,
-                    location=character.location_id,
-                    participants=[character.id],
-                    outcome={"from": current_location_id, "to": character.location_id},
-                    description=f"{character.name} moved (fallback)",
-                    tick=self._next_tick(),
-                )
+                description = f"{character.name} forced a stealth resolution around {threat['name']}."
+                severity = 5
 
-    async def process_interactions_by_location(self, day_number: int) -> None:
-        """Generate location interactions via LLM, with relationship context."""
-        from dreamcraft_v2.llm.parser import parse_json_response, validate_interaction_response
-        from dreamcraft_v2.llm.prompts import interaction_prompt
-
-        rows = await self.database.fetch_all(
-            "SELECT id, name, location_id, race, class_type, status FROM characters WHERE status = 'alive' AND location_id IS NOT NULL"
-        )
-
-        grouped: dict[int, list[dict]] = defaultdict(list)
-        for row in rows:
-            grouped[int(row["location_id"])].append(row)
-
-        locations_data = await self.database.get_locations()
-        location_map = {int(loc["id"]): loc for loc in locations_data}
-
-        for location_id, characters in grouped.items():
-            if len(characters) < 2:
-                continue
-
-            location = location_map.get(location_id)
-            location_name = location["name"] if location else "Unknown"
-            location_type = location["type"] if location else "unknown"
-
-            # Get full character data
-            char_data = []
-            char_ids = []
-            for char in characters:
-                full_data = await self.database.get_character(int(char["id"]))
-                if full_data:
-                    char_data.append(full_data)
-                    char_ids.append(int(full_data["id"]))
-
-            # Get relationships between characters at this location
-            relationships = []
-            for i, char_a in enumerate(char_ids):
-                for char_b in char_ids[i + 1 :]:
-                    rel = await self.database.get_relationship_between(char_a, char_b)
-                    if rel:
-                        relationships.append({
-                            "char_a": char_a,
-                            "char_b": char_b,
-                            "type": rel["type"],
-                            "strength": rel["strength"],
-                        })
-
-            # Get recent events at this location
-            recent = await self.database.fetch_all(
-                "SELECT description FROM events WHERE location_id = ? AND day >= ? ORDER BY day DESC LIMIT 5",
-                (location_id, day_number - 3),
-            )
-            recent_events = [e["description"] for e in recent]
-
-            # Build char data for prompt
-            char_list = [
+            await self._insert_event(
+                day_number,
+                forced_action,
+                severity,
+                character.location_id,
+                [character.id],
                 {
-                    "id": int(c["id"]),
-                    "name": c["name"],
-                    "race": c["race"],
-                    "class_type": c["class_type"],
-                    "status": c["status"],
-                    "personality": (
-                        json.loads(c["personality"])
-                        if isinstance(c.get("personality"), str)
-                        else (c.get("personality") or {})
-                    ),
-                }
-                for c in char_data
-            ]
-
-            # Get LLM interaction outcomes
-            system_prompt, user_prompt = interaction_prompt(
-                location_name, location_type, char_list, relationships, recent_events
-            )
-
-            llm_response = await self.llm_client.make_completion(
-                prompt=user_prompt,
-                system_prompt=system_prompt,
-            )
-
-            response_data = parse_json_response(llm_response) if llm_response else None
-            if not validate_interaction_response(response_data):
-                # Fallback: generate simple location-based events
-                await self._generate_fallback_interaction(location_type, char_ids, location_id, day_number)
-                continue
-
-            # Create events from LLM response
-            for event in response_data["events"]:
-                participant_ids = [int(pid) for pid in event.get("participants", [])]
-                if not participant_ids:
-                    continue
-
-                await self.event_manager.create_event(
-                    day=day_number,
-                    event_type=event.get("type", "SOCIAL").upper(),
-                    severity=event.get("severity", 3),
-                    location=location_id,
-                    participants=participant_ids,
-                    outcome={
-                        "description": event.get("description"),
-                        "relationship_changes": event.get("relationship_changes", []),
-                    },
-                    description=event.get("description", "Interaction occurred"),
-                    tick=self._next_tick(),
-                )
-
-    async def _generate_fallback_interaction(
-        self, location_type: str, char_ids: list[int], location_id: int, day_number: int
-    ) -> None:
-        """Fallback interaction when LLM unavailable."""
-        if location_type == "tavern":
-            event_type = EventType.SOCIAL
-            severity = 3
-        elif location_type == "market":
-            event_type = EventType.TRADE
-            severity = 4
-        elif location_type in ("dungeon", "wilderness"):
-            event_type = EventType.COMBAT
-            severity = 6
-        else:
-            event_type = EventType.SOCIAL
-            severity = 3
-
-        await self.event_manager.create_event(
-            day=day_number,
-            event_type=event_type,
-            severity=severity,
-            location=location_id,
-            participants=char_ids,
-            outcome={"context": f"{location_type}_fallback"},
-            description=f"{len(char_ids)} characters interacted (fallback)",
-            tick=self._next_tick(),
-        )
-
-    async def process_faction_politics(self, day_number: int) -> None:
-        """Generate faction political events via LLM."""
-        from dreamcraft_v2.llm.parser import parse_json_response, validate_political_response
-        from dreamcraft_v2.llm.prompts import faction_politics_prompt
-
-        # Get factions with member counts
-        rows = await self.database.fetch_all(
-            """
-            SELECT f.*, COUNT(c.id) as member_count
-            FROM factions f
-            LEFT JOIN characters c ON c.faction_id = f.id AND c.status = 'alive'
-            GROUP BY f.id
-            """
-        )
-
-        for faction_row in rows:
-            faction_id = int(faction_row["id"])
-            faction_name = faction_row["name"]
-            alignment = faction_row.get("alignment", "neutral")
-            power = int(faction_row.get("power", 50))
-            member_count = int(faction_row.get("member_count", 0))
-
-            # Parse relations JSON
-            relations_json = faction_row.get("relations", "{}")
-            relations = (
-                json.loads(relations_json)
-                if isinstance(relations_json, str)
-                else (relations_json or {})
-            )
-
-            # Get recent political events
-            recent = await self.database.fetch_all(
-                "SELECT description FROM events WHERE type = 'POLITICAL' AND day >= ? ORDER BY day DESC LIMIT 5",
-                (day_number - 7,),
-            )
-            recent_events = [e["description"] for e in recent]
-
-            # Get LLM political decision
-            system_prompt, user_prompt = faction_politics_prompt(
-                faction_name, alignment, power, relations, member_count, recent_events
-            )
-
-            llm_response = await self.llm_client.make_completion(
-                prompt=user_prompt,
-                system_prompt=system_prompt,
-            )
-
-            response_data = parse_json_response(llm_response) if llm_response else None
-            if not validate_political_response(response_data):
-                # Fallback: simple consolidation event
-                severity = min(8, 3 + (member_count // 10) + (power // 25))
-                await self.event_manager.create_event(
-                    day=day_number,
-                    event_type=EventType.POLITICAL,
-                    severity=severity,
-                    location=None,
-                    participants=[],
-                    outcome={"faction_id": faction_id, "member_count": member_count},
-                    description=f"{faction_name} consolidated power (fallback)",
-                    tick=self._next_tick(),
-                )
-                continue
-
-            # Create political event
-            severity = response_data.get("severity", 5)
-            action_desc = response_data.get("action", "Political action")
-
-            await self.event_manager.create_event(
-                day=day_number,
-                event_type=EventType.POLITICAL,
-                severity=severity,
-                location=None,
-                participants=[],
-                outcome={
-                    "faction": faction_name,
-                    "action_type": response_data.get("type"),
-                    "target": response_data.get("target_faction"),
+                    "priority_level": 1,
+                    "threat_id": int(threat["id"]),
+                    "threat_name": threat["name"],
+                    "region_id": threat.get("region_id"),
                 },
-                description=action_desc,
-                tick=self._next_tick(),
+                description,
             )
-
-            # Apply power and relation changes
-            power_change = response_data.get("power_change", 0)
-            if power_change != 0:
-                await self.database.update_faction_power(faction_id, power_change)
-
-            relation_changes = response_data.get("relation_changes", [])
-            for change in relation_changes:
-                target_name = change.get("faction")
-                delta = change.get("change", 0)
-                if target_name and delta != 0:
-                    await self.database.update_faction_relation(faction_id, target_name, delta)
-
-    async def process_combat_encounters(self, day_number: int) -> None:
-        """Process dangerous-location encounters and create combat events."""
-        locations = await self.database.fetch_all(
-            "SELECT id, danger_level FROM locations WHERE danger_level >= 6"
-        )
-        for location in locations:
-            location_id = int(location["id"])
-            danger_level = int(location["danger_level"])
-            characters = await self.database.get_characters_at_location(location_id)
-            if len(characters) < 2:
-                continue
-            combatants = [int(char["id"]) for char in characters[: min(6, len(characters))]]
-            severity = min(10, max(5, danger_level))
-            event_type = EventType.BOSS if severity >= 8 else EventType.COMBAT
-            await self.event_manager.create_event(
-                day=day_number,
-                event_type=event_type,
-                severity=severity,
-                location=location_id,
-                participants=combatants,
-                outcome={"danger_level": danger_level},
-                description=f"Encounter at location {location_id} with danger {danger_level}",
-                tick=self._next_tick(),
-            )
-
-    async def update_relationships_from_events(self, day_number: int) -> None:
-        """Update relationships based on major events via LLM evaluation."""
-        from dreamcraft_v2.llm.parser import parse_json_response, validate_relationship_response
-        from dreamcraft_v2.llm.prompts import relationship_evaluation_prompt
-
-        # Get major events from today
-        events = await self.database.fetch_all(
-            "SELECT * FROM events WHERE day = ? AND severity >= 5 ORDER BY tick",
-            (day_number,)
-        )
-
-        for event in events:
-            event_type = event.get("type", "")
-            severity = int(event.get("severity", 5))
-            participants_json = event.get("participants", "[]")
-
-            participants = (
-                json.loads(participants_json)
-                if isinstance(participants_json, str)
-                else (participants_json or [])
-            )
-
-            if len(participants) < 2:
-                continue
-
-            # Evaluate each pair of participants
-            for i, char_a_id in enumerate(participants):
-                for char_b_id in participants[i + 1 :]:
-                    char_a = await self.database.get_character(int(char_a_id))
-                    char_b = await self.database.get_character(int(char_b_id))
-
-                    if not char_a or not char_b:
-                        continue
-
-                    current_rel = await self.database.get_relationship_between(
-                        int(char_a_id), int(char_b_id)
-                    )
-
-                    # Get LLM evaluation
-                    system_prompt, user_prompt = relationship_evaluation_prompt(
-                        event.get("description", ""),
-                        event_type,
-                        severity,
-                        char_a["name"],
-                        char_a.get("personality", {}),
-                        char_a.get("backstory", "Unknown"),
-                        char_b["name"],
-                        char_b.get("personality", {}),
-                        char_b.get("backstory", "Unknown"),
-                        current_rel,
-                    )
-
-                    llm_response = await self.llm_client.make_completion(
-                        prompt=user_prompt,
-                        system_prompt=system_prompt,
-                    )
-
-                    response_data = parse_json_response(llm_response) if llm_response else None
-                    if not validate_relationship_response(response_data):
-                        continue
-
-                    new_type = response_data.get("new_type", "neutral")
-                    new_strength = int(response_data.get("new_strength", 50))
-
-                    if current_rel:
-                        # Update existing
-                        await self.database.update_relationship(
-                            int(char_a_id),
-                            int(char_b_id),
-                            new_type,
-                            new_strength,
-                            f"Day {day_number}: {event_type}",
-                        )
-                    else:
-                        # Create new
-                        await self.database.create_relationship(
-                            int(char_a_id),
-                            int(char_b_id),
-                            new_type,
-                            new_strength,
-                            f"Day {day_number}: First meeting via {event_type}",
-                        )
-
-    async def generate_events_with_flagging(self, day_number: int) -> None:
-        """Recompute major-event flags for the day based on severity threshold."""
-        await self.event_manager.flag_major_events(day_number)
-
-    async def queue_llm_decision_requests(self, day_number: int) -> list[dict[str, Any]]:
-        """Build queued decision prompts for alive characters."""
-        rows = await self.database.get_alive_characters()
-        queue: list[dict[str, Any]] = []
-        for row in rows:
-            character = Character.from_row(row)
-            context = {
-                "day": day_number,
-                "location_id": character.location_id,
-                "status": character.status,
-            }
-            queue.append(
-                {
-                    "character": character,
-                    "context": context,
-                    "prompt": get_personality_prompt(character)
-                    + f" Current context: {json.dumps(context)}",
-                }
-            )
-        return queue
-
-    async def apply_llm_decisions(
-        self, day_number: int, queue: list[dict[str, Any]]
-    ) -> dict[str, Any]:
-        """Apply model decisions when available, else deterministic fallback."""
-        if not queue:
-            return {"llm_calls": 0, "fallback_calls": 0}
-
-        llm_calls = 0
-        fallback_calls = 0
-        llm_enabled = self.settings.simulation_burst_enabled and await self.llm_client.health_check()
-        prompts = [item["prompt"] for item in queue]
-        llm_outputs: list[str | None] = []
+            return {"level": 1, "llm_calls": 0}
 
         if llm_enabled:
-            llm_outputs = await self.llm_client.make_batch_completion(prompts=prompts)
-            llm_calls = len(prompts)
-        else:
-            llm_outputs = [None] * len(queue)
-
-        for item, llm_text in zip(queue, llm_outputs, strict=True):
-            character: Character = item["character"]
-            context: dict[str, Any] = item["context"]
-            if llm_text:
-                outcome = {"decision": llm_text.strip()}
-            else:
-                fallback = deterministic_decision(
-                    character, {"location_options": [character.location_id or 0]}
-                )
-                outcome = {"decision": fallback}
-                fallback_calls += 1
-
-            await self.event_manager.create_event(
-                day=day_number,
-                event_type=EventType.SOCIAL,
-                severity=3,
-                location=character.location_id,
-                participants=[character.id],
-                outcome=outcome,
-                description=f"Decision resolved for {character.name}",
-                tick=self._next_tick(),
+            prompt = self._build_llm_prompt(character_row, world_state)
+            llm_text = await self.llm_client.make_completion(
+                prompt=prompt,
+                system_prompt="You are driving a persistent fantasy simulation. Return one concise action.",
             )
-            _ = context
+            decision = (llm_text or "").strip() or "pursue faction-safe objective"
+            llm_calls = 1
+        else:
+            decision = str(
+                deterministic_decision(
+                    character,
+                    {"location_options": [character.location_id or 0]},
+                )
+            )
+            llm_calls = 0
 
-        return {"llm_calls": llm_calls, "fallback_calls": fallback_calls}
-
-    async def log_simulation_results(self, day_number: int, applied: dict[str, Any]) -> None:
-        """Write end-of-day summary to simulation_log."""
-        events = await self.database.get_events_for_day(day_number)
-        message = (
-            f"Day {day_number} complete: events={len(events)} "
-            f"llm_calls={applied.get('llm_calls', 0)} "
-            f"fallback_calls={applied.get('fallback_calls', 0)}"
+        await self.database.execute(
+            """
+            UPDATE characters
+            SET experience = experience + 3,
+                hunger = MIN(100, hunger + 4),
+                energy = MAX(0, energy - 5),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (character.id,),
         )
-        await self.database.log_simulation(day_number, "summary", message, duration_ms=None)
-        LOGGER.info(message)
-
-    async def _timed_phase(self, day_number: int, phase: str, phase_callable: Any) -> Any:
-        """Run a phase, logging its duration to simulation_log."""
-        started = time.perf_counter()
-        result = await phase_callable()
-        elapsed_ms = int((time.perf_counter() - started) * 1000)
-        await self.database.log_simulation(
-            day=day_number,
-            phase=phase,
-            message=f"{phase} phase complete",
-            duration_ms=elapsed_ms,
+        await self._insert_event(
+            day_number,
+            "narrative_goal",
+            3,
+            character.location_id,
+            [character.id],
+            {"priority_level": 2, "decision": decision},
+            f"{character.name} pursued an emergent objective.",
         )
-        return result
+        return {"level": 2, "llm_calls": llm_calls}
+
+    async def _active_threat_for_region(self, region_id: Any) -> dict[str, Any] | None:
+        """Return one active threat for the supplied region when available."""
+        if region_id is None:
+            return None
+        return await self.database.fetch_one(
+            """
+            SELECT id, name, severity, bounty, region_id
+            FROM threats
+            WHERE region_id = ? AND is_active = 1
+            ORDER BY severity DESC, id ASC
+            LIMIT 1
+            """,
+            (int(region_id),),
+        )
+
+    def _build_llm_prompt(self, character_row: dict[str, Any], world_state: dict[str, Any]) -> str:
+        """Build Level-2 narrative-goal prompt from faction, traits, and world state."""
+        name = character_row.get("name", "Unknown")
+        faction = character_row.get("faction_name") or "Unaffiliated"
+        personality = character_row.get("personality", "{}")
+        goals = character_row.get("goals", "[]")
+        weather = world_state.get("weather", "clear")
+        season = world_state.get("season", "unknown")
+        day = world_state.get("day", "unknown")
+        return (
+            f"Character: {name}\n"
+            f"Faction: {faction}\n"
+            f"Traits: {personality}\n"
+            f"Goals: {goals}\n"
+            f"World State: day={day}, season={season}, weather={weather}\n"
+            "Choose one short narrative goal for this pulse."
+        )
+
+    async def _stage_scribe(self, day_number: int, summary: dict[str, Any]) -> dict[str, Any]:
+        """Stage D: update legacy ledger and write markdown pulse summary."""
+        candidates = await self.database.fetch_all(
+            """
+            SELECT c.id, c.name, c.faction_id, l.region_id, c.level, c.legacy_score,
+                   c.status, c.retired_at, c.died_at
+            FROM characters c
+            LEFT JOIN locations l ON l.id = c.location_id
+            WHERE c.status IN ('retired', 'dead')
+            """
+        )
+
+        inserted_ledger_rows = 0
+        for row in candidates:
+            existing = await self.database.fetch_one(
+                "SELECT id FROM legacy_ledger WHERE character_id = ? LIMIT 1",
+                (int(row["id"]),),
+            )
+            if existing:
+                continue
+            await self.database.execute(
+                """
+                INSERT INTO legacy_ledger(
+                    character_id, character_name, final_faction_id, final_region_id,
+                    final_level, legacy_score, retirement_reason, retirement_day, death_day,
+                    epitaph, notable_deeds, world_impact
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    int(row["id"]),
+                    str(row["name"]),
+                    row.get("faction_id"),
+                    row.get("region_id"),
+                    int(row.get("level", 1)),
+                    int(row.get("legacy_score", 0)),
+                    f"status={row.get('status')}",
+                    day_number if row.get("status") == "retired" else None,
+                    day_number if row.get("status") == "dead" else None,
+                    f"{row.get('name')} is remembered by the realm.",
+                    "[]",
+                    "{}",
+                ),
+            )
+            inserted_ledger_rows += 1
+
+        pulse_dir = Path("logs") / "pulses"
+        pulse_dir.mkdir(parents=True, exist_ok=True)
+        summary_path = pulse_dir / f"pulse_day_{day_number}.md"
+        summary_path.write_text(self._render_markdown_summary(day_number, summary), encoding="utf-8")
+
+        scribe = ScribeService(self.database, self.llm_client, output_root="artifacts")
+        journal_output = await scribe.generate_daily_journals(day_number)
+        snapshot_output = await scribe.generate_character_snapshots(day_number)
+
+        export_root = os.getenv("SAGA_EXPORT_ROOT", "/app/exports")
+        vault = VaultManager(export_root=export_root)
+        manifest = vault.create_daily_export(
+            journals_dir=journal_output["journals_dir"],
+            snapshots_dir=snapshot_output["snapshots_dir"],
+            db_path=self.settings.db_path,
+            day_number=day_number,
+        )
+
+        return {
+            "legacy_ledger_inserts": inserted_ledger_rows,
+            "markdown_summary": str(summary_path),
+            "journals_dir": journal_output["journals_dir"],
+            "snapshots_cards_path": snapshot_output["cards_path"],
+            "export_dir": manifest["export_dir"],
+        }
+
+    def _render_markdown_summary(self, day_number: int, summary: dict[str, Any]) -> str:
+        """Render a pulse execution report for operators."""
+        actions = summary.get("actions", {})
+        stages = summary.get("stages", {})
+        lines = [
+            f"# Pulse Day {day_number}",
+            "",
+            "## Systemic Priority Queue",
+            f"- Level 0 actions: {actions.get('level_0', 0)}",
+            f"- Level 1 actions: {actions.get('level_1', 0)}",
+            f"- Level 2 actions: {actions.get('level_2', 0)}",
+            f"- LLM calls: {summary.get('llm_calls', 0)}",
+            "",
+            "## Stage Pipeline",
+            f"- Stage A (World Entropy): `{json.dumps(stages.get('A', {}), default=str)}`",
+            f"- Stage B (Threat Impact): `{json.dumps(stages.get('B', {}), default=str)}`",
+            f"- Stage C (Action Resolution): `{json.dumps(stages.get('C', {}), default=str)}`",
+            f"- Stage D (Scribe): `{json.dumps(stages.get('D', {}), default=str)}`",
+            "",
+            f"- Total events recorded for day: {summary.get('events', 0)}",
+        ]
+        return "\n".join(lines) + "\n"
+
+    async def _insert_event(
+        self,
+        day: int,
+        event_type: str,
+        severity: int,
+        location_id: int | None,
+        participants: list[int],
+        outcome: dict[str, Any],
+        description: str,
+    ) -> None:
+        """Insert event rows directly for custom pulse event types."""
+        await self.database.execute(
+            """
+            INSERT INTO events(
+                day, tick, type, severity, is_major, location_id, description, participants, outcome
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                day,
+                self._next_tick(),
+                event_type,
+                severity,
+                1 if severity >= int(self.settings.major_event_threshold) else 0,
+                location_id,
+                description,
+                json.dumps(participants),
+                json.dumps(outcome),
+            ),
+        )
 
     def _next_tick(self) -> int:
-        """Increment and return an event tick number."""
         self._tick += 1
         return self._tick
 
     def _season_for_day(self, day_number: int) -> str:
-        """Return season name based on day-of-year style cycle."""
         seasons = ["spring", "summer", "autumn", "winter"]
         return seasons[((day_number - 1) // 90) % len(seasons)]
 
     def _weather_for_day(self, day_number: int) -> str:
-        """Return season-influenced weather (deterministic)."""
-        rng = self._rng_for_day(day_number)
-        season = self._season_for_day(day_number)
-        weights = {
-            "spring": {"clear": 3, "rain": 4, "fog": 2, "storm": 1, "windy": 2},
-            "summer": {"clear": 5, "rain": 2, "fog": 1, "storm": 2, "windy": 1},
-            "autumn": {"clear": 2, "rain": 3, "fog": 3, "storm": 2, "windy": 3},
-            "winter": {"clear": 2, "rain": 1, "fog": 2, "storm": 3, "windy": 2},
-        }
-        options = list(weights[season].keys())
-        w = list(weights[season].values())
-        return rng.choices(options, weights=w, k=1)[0]
-
-    def _rng_for_day(self, day_number: int) -> random.Random:
-        """Return deterministic RNG for a day."""
-        return random.Random(day_number)
+        options = ["clear", "rain", "fog", "storm", "windy"]
+        return options[(day_number - 1) % len(options)]

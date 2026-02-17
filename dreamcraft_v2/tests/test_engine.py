@@ -33,7 +33,7 @@ async def test_run_day_creates_events_and_world_state(test_database: DatabaseMan
     await seed_world(test_database)
     event_manager = EventManager(test_database, major_event_threshold=7)
     settings = Settings(
-        database_path=test_database.database_path,
+        db_path=test_database.database_path,
         llm_endpoint="http://llm.local:11434/v1",
         llm_model="mistral",
         llm_timeout=5,
@@ -43,7 +43,7 @@ async def test_run_day_creates_events_and_world_state(test_database: DatabaseMan
         narrative_window_start="04:00",
         narrative_window_end="06:00",
         log_level="INFO",
-        api_port=8000,
+        api_port=8002,
         major_event_threshold=7,
     )
     engine = SimulationEngine(

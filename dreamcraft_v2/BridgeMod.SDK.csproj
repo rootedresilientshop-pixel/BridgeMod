@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Library output — no entry point -->
+    <OutputType>Library</OutputType>
+    <!-- net8.0 (LTS) + netstandard2.1 for broadest Unity/Mono compatibility -->
+    <TargetFrameworks>net8.0;netstandard2.1</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>10</LangVersion>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>BridgeMod.SDK</PackageId>
+    <Version>0.2.2</Version>
+    <Authors>DreamCraft: Legacies Project</Authors>
+    <Company>DreamCraft</Company>
+    <Product>BridgeMod.SDK</Product>
+    <Description>
+      A security-first SDK for bridging PC modding toolchains with console game engines.
+      Provides a three-gate validation firewall (Deserialize, Boundary Guards, Audit Logger)
+      that sanitizes untrusted mod payloads before they reach the trusted console runtime.
+    </Description>
+    <PackageTags>console;modding;security;bridge;validation;unity;gamedev;sdk</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</PackageProjectUrl>
+    <Copyright>Copyright © 2024 DreamCraft: Legacies Project</Copyright>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exclude the sample runner — it belongs to Legacies_Bridge_Test.csproj only -->
+    <Compile Remove="Legacies_Bridge_Test\**\*.cs" />
+
+    <!-- Include README in the NuGet package (displayed on NuGet.org) -->
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
