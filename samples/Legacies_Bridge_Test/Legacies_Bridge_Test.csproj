@@ -13,7 +13,7 @@
 
   <!-- Reference the BridgeMod.SDK library (project reference for local dev) -->
   <ItemGroup>
-    <ProjectReference Include="..\BridgeMod.SDK.csproj" />
+    <ProjectReference Include="..\..\src\BridgeMod.SDK\BridgeMod.SDK.csproj" />
   </ItemGroup>
 
 </Project>

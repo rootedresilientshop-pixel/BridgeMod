@@ -1,5 +1,5 @@
 // =============================================================================
-// Program.cs — BridgeMod.SDK v0.2.2 — Sample Runner
+// Program.cs — BridgeMod.SDK v0.2.4 — Sample Runner
 // =============================================================================
 // Copyright (c) 2024 DreamCraft: Legacies Project
 // License: MIT (see LICENSE in repository root)
@@ -39,7 +39,7 @@ namespace BridgeMod.Bridge.Sample
         private static void Main(string[] args)
         {
             Console.WriteLine(new string('=', 60));
-            Console.WriteLine("BridgeMod.SDK v0.2.2 — C# Bridge Sample Runner");
+            Console.WriteLine("BridgeMod.SDK v0.2.4 — C# Bridge Sample Runner");
             Console.WriteLine(new string('=', 60));
             Console.WriteLine();
 

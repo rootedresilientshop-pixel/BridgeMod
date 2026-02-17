@@ -78,6 +78,36 @@ flowchart TD
     style R2 fill:#FADBD8,stroke:#C0392B,stroke-width:2px
 ```
 
+## Repository Structure
+
+```
+BridgeMod/
+├── src/
+│   ├── BridgeMod.SDK/              # C# Firewall SDK (NuGet: BridgeMod.SDK)
+│   │   ├── BridgeMod.Bridge.cs    # Public API: ModBridge, AuditLogger, BridgeConfig
+│   │   ├── BridgeMod.SDK.csproj   # NuGet package (net8.0 + netstandard2.1)
+│   │   ├── IsExternalInit.cs      # C# 9+ polyfill for netstandard2.1
+│   │   └── README.md              # SDK-specific documentation
+│   └── DreamCraft.Engine/          # Python simulation engine (DreamCraft: Legacies)
+│       ├── simulation/             # 4-stage pulse engine
+│       ├── api/                    # FastAPI REST + WebSocket
+│       ├── llm/                    # Ollama-compatible LLM client
+│       ├── data/                   # Schema, seed, SQLite setup
+│       └── ...                     # Config, Docker, Makefile
+├── samples/
+│   └── Legacies_Bridge_Test/       # Integration sample (C# + Python)
+│       ├── Program.cs              # Annotated sample runner
+│       ├── pulse_test.py           # Python pytest validation suite
+│       └── Sample_Walkthrough.md  # Step-by-step developer tutorial
+├── tests/                          # SDK unit tests
+├── tools/                          # ModPackager, SchemaValidatorCLI
+├── docs/                           # Architecture and design docs
+├── examples/                       # Example mods
+└── .github/                        # CI/CD workflows
+```
+
+---
+
 ## Platform Support
 
 **BridgeMod works with any C# / .NET 10.0+ platform:**

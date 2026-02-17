@@ -11,7 +11,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>BridgeMod.SDK</PackageId>
-    <Version>0.2.3</Version>
+    <Version>0.2.4</Version>
     <Authors>DreamCraft: Legacies Project</Authors>
     <Company>DreamCraft</Company>
     <Product>BridgeMod.SDK</Product>
@@ -32,10 +32,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Exclude the sample runner — it belongs to Legacies_Bridge_Test.csproj only -->
-    <Compile Remove="Legacies_Bridge_Test\**\*.cs" />
-
     <!-- Include README in the NuGet package (displayed on NuGet.org) -->
+    <!-- README.md lives alongside this .csproj at src/BridgeMod.SDK/ -->
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 

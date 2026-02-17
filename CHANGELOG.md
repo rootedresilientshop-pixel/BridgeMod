@@ -5,6 +5,58 @@ All notable changes to BridgeMod are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] — 2026-02-17
+
+### Changed
+
+#### Repository Structure Professionalization
+- Source code reorganized into standard `/src`, `/samples`, `/docs` layout.
+- Firewall SDK promoted: `dreamcraft_v2/` → `src/BridgeMod.SDK/`
+- Python simulation engine isolated: `dreamcraft_v2/` → `src/DreamCraft.Engine/`
+- Integration sample relocated: `dreamcraft_v2/Legacies_Bridge_Test/` → `samples/Legacies_Bridge_Test/`
+- Legacy `/sdk/` placeholder removed — `src/BridgeMod.SDK/` (Firewall architecture) is the
+  single authoritative C# SDK implementation.
+- Engine architecture docs moved to `/docs/DreamCraft_*.md`.
+
+#### Build System
+- `samples/Legacies_Bridge_Test/Legacies_Bridge_Test.csproj` — `ProjectReference` updated to
+  reflect new path `../../src/BridgeMod.SDK/BridgeMod.SDK.csproj`.
+- Stale `<Compile Remove="Legacies_Bridge_Test\**\*.cs" />` rule removed (structural separation
+  makes it unnecessary).
+
+---
+
+## [0.2.3] — 2026-02-17
+
+### Added
+
+#### Formal MIT License
+- `LICENSE` added to repository root; declared via `<PackageLicenseExpression>MIT</PackageLicenseExpression>`.
+
+#### Firewall Architecture — Public API Promotion
+- All bridge types (`ModBridge`, `BridgeConfig`, `AuditLogger`, `ValidationResult`, `ErrorCodes`)
+  promoted from `internal` to `public`, extracted into `BridgeMod.Bridge.cs`.
+- `BridgeMod.Bridge.cs` is the single, authoritative public API surface of the SDK.
+
+#### Multi-Target Framework Support
+- SDK ships two TFM builds in the `.nupkg`: `net8.0` (LTS) and `netstandard2.1` (Unity/Mono).
+- `IsExternalInit.cs` polyfill enables C# 9+ `record`/`init` on `netstandard2.1`.
+
+#### Integration Sample (`samples/Legacies_Bridge_Test/`)
+- `Program.cs` — annotated C# sample runner demonstrating all three validation gates.
+- `pulse_test.py` — pytest suite: Standard, Malicious, and Boundary Guard test cases.
+- `Sample_Walkthrough.md` — step-by-step developer tutorial with manual gate trace.
+
+#### README Embedded in NuGet Package
+- `README.md` included via `PackageReadmeFile` — architecture diagram renders on NuGet.org.
+
+### Changed
+
+- `ModBridge.Validate()` now returns `ValidationResult` (was raw bool). **Breaking change** —
+  callers expecting silently-stripped payloads will now see `IsValid: false`.
+
+---
+
 ## [0.2.1] - 2026-02-14
 
 ### Discovery Update
