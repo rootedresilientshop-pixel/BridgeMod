@@ -7,6 +7,48 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.2.3] — 2026-02-17
+
+### Added
+
+#### Formal MIT License
+- `LICENSE` file added to repository root — required for NuGet.org publication
+  and open-source compliance. License expression `MIT` is now declared in the
+  `<PackageLicenseExpression>` field of `BridgeMod.SDK.csproj`.
+
+#### Firewall Architecture — Public API Promotion
+- All bridge types (`ModBridge`, `BridgeConfig`, `AuditLogger`, `ValidationResult`,
+  `ErrorCodes`) promoted from `internal` to `public` and extracted into a dedicated
+  library source file `BridgeMod.Bridge.cs`. Previously these lived as `internal`
+  classes inside the sample runner, making them inaccessible to NuGet consumers.
+- `BridgeMod.Bridge.cs` is now the single, authoritative public API surface of the SDK.
+
+#### Multi-Target Framework Support
+- SDK now ships two TFM builds in the `.nupkg`:
+  - `net8.0` — .NET LTS, for server and standalone console use.
+  - `netstandard2.1` — broadest Unity/Mono compatibility for game engine integration.
+- `IsExternalInit.cs` polyfill added to enable C# 9+ `record` and `init` semantics
+  on the `netstandard2.1` target without runtime breakage.
+
+#### Project Split: Library vs. Sample
+- `BridgeMod.SDK.csproj` — Class Library (NuGet package). Contains only the public
+  bridge API. Does not include the sample runner.
+- `Legacies_Bridge_Test/Legacies_Bridge_Test.csproj` — Console App sample that
+  references the library via project reference. Demonstrates all three validation
+  gates with annotated code and live output.
+
+#### README Embedded in NuGet Package
+- `README.md` is now included in the `.nupkg` via `PackageReadmeFile`, so the
+  architecture diagram and verification table are displayed directly on the
+  NuGet.org package page.
+
+### Changed
+
+- `BridgeMod.SDK.csproj` version bumped `0.2.2 → 0.2.3` to publish the Firewall
+  architecture and MIT license as the authoritative public release.
+
+---
+
 ## [0.2.2] — 2024-02-16
 
 ### Added
