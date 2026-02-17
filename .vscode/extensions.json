@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.vscode-dotnet-runtime",
+    "jchannon.csharpextensions",
+    "formulahendry.code-runner",
+    "eamodio.gitlens"
+  ]
+}

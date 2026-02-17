@@ -1,0 +1,46 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sdk", "sdk", "{A1C2D4F6-8E9A-4B5C-6D7E-8F9A0B1C2D3E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{B2D3E5F7-9F0A-5C6D-7E8F-9F0A1B2C3D4E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cloud", "cloud", "{C3E4F6G8-0F1B-6D7E-8F9G-0F1B2C3D4E5F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{D4F5G7H9-1F2C-7E8F-9F0H-1F2C3D4E5F6G}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E5F6H8I0-2F3D-8F9G-0F1I-2F3D4E5F6G7H}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BridgeMod.SDK", "sdk\BridgeMod.SDK.csproj", "{F6G7I9J1-3F4E-9G0H-1F2J-3F4E5F6G7H8I}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BridgeMod.Tests", "tests\BridgeMod.Tests.csproj", "{G7H8J0K2-4F5F-0H1I-2F3K-4F5F6G7H8I9J}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModPackager", "tools\ModPackager\ModPackager.csproj", "{H8I9K1L3-5F6G-1I2J-3F4L-5F6G7H8I9J0K}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchemaValidator", "tools\SchemaValidatorCLI\SchemaValidator.csproj", "{I9J0L2M4-6F7H-2J3K-4F5M-6F7H8I9J0K1L}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F6G7I9J1-3F4E-9G0H-1F2J-3F4E5F6G7H8I}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6G7I9J1-3F4E-9G0H-1F2J-3F4E5F6G7H8I}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6G7I9J1-3F4E-9G0H-1F2J-3F4E5F6G7H8I}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6G7I9J1-3F4E-9G0H-1F2J-3F4E5F6G7H8I}.Release|Any CPU.Build.0 = Release|Any CPU
+		{G7H8J0K2-4F5F-0H1I-2F3K-4F5F6G7H8I9J}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{G7H8J0K2-4F5F-0H1I-2F3K-4F5F6G7H8I9J}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{G7H8J0K2-4F5F-0H1I-2F3K-4F5F6G7H8I9J}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{G7H8J0K2-4F5F-0H1I-2F3K-4F5F6G7H8I9J}.Release|Any CPU.Build.0 = Release|Any CPU
+		{H8I9K1L3-5F6G-1I2J-3F4L-5F6G7H8I9J0K}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{H8I9K1L3-5F6G-1I2J-3F4L-5F6G7H8I9J0K}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{H8I9K1L3-5F6G-1I2J-3F4L-5F6G7H8I9J0K}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{H8I9K1L3-5F6G-1I2J-3F4L-5F6G7H8I9J0K}.Release|Any CPU.Build.0 = Release|Any CPU
+		{I9J0L2M4-6F7H-2J3K-4F5M-6F7H8I9J0K1L}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{I9J0L2M4-6F7H-2J3K-4F5M-6F7H8I9J0K1L}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{I9J0L2M4-6F7H-2J3K-4F5M-6F7H8I9J0K1L}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{I9J0L2M4-6F7H-2J3K-4F5M-6F7H8I9J0K1L}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

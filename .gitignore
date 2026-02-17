@@ -1,5 +1,93 @@
-# v1 archive - reference only, not tracked
+# =============================================================================
+# .gitignore — BridgeMod repository root
+# =============================================================================
+
+# v1 archive — reference only, not tracked
 _v1_archive/
 
-# Environment
+# -------------------------------------------------------------------------
+# Environment & Secrets
+# -------------------------------------------------------------------------
 .env
+.env.local
+*.env
+
+# -------------------------------------------------------------------------
+# C# / .NET build artifacts
+# -------------------------------------------------------------------------
+.idea/
+*.sln.iml
+.vs/
+*.user
+*.userosscache
+
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+*.nupkg
+*.snupkg
+.nuget/
+
+TestResults/
+*.VisualState.xml
+nunit-*.xml
+
+project.lock.json
+project.assets.json
+nuget.g.props
+nuget.g.targets
+
+# -------------------------------------------------------------------------
+# Python (dreamcraft_v2/)
+# -------------------------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# -------------------------------------------------------------------------
+# Node / Frontend
+# -------------------------------------------------------------------------
+node_modules/
+.next/
+
+# -------------------------------------------------------------------------
+# IDE / OS
+# -------------------------------------------------------------------------
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*~
+
+# Claude Code settings (local only — not shared)
+.claude/settings.local.json
+
+# -------------------------------------------------------------------------
+# BridgeMod — audit logs may contain payload data
+# -------------------------------------------------------------------------
+*_audit.log
+bridgemod_audit.log
