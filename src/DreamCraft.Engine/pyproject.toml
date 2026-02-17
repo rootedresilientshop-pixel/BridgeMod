@@ -1,0 +1,8 @@
+[project]
+name = "dreamcraft-legacies"
+version = "2.0.0-alpha"
+description = "A persistent AI-driven fantasy world simulation"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

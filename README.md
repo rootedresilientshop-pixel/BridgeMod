@@ -8,6 +8,9 @@ Build your mod system once. It works on PC, ports to console, and never needs re
 
 [![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
 
+### 🚀 Status: v0.2.4 Live
+**Milestone:** Phase 1 (Security Foundation) — **Complete** ✅  
+**Latest News:** [Establishing the Firewall Standard (Feb 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
 ## Why BridgeMod Exists
 
 We believe:
@@ -77,6 +80,36 @@ flowchart TD
     style R1 fill:#FADBD8,stroke:#C0392B,stroke-width:2px
     style R2 fill:#FADBD8,stroke:#C0392B,stroke-width:2px
 ```
+
+## Repository Structure
+
+```
+BridgeMod/
+├── src/
+│   ├── BridgeMod.SDK/              # C# Firewall SDK (NuGet: BridgeMod.SDK)
+│   │   ├── BridgeMod.Bridge.cs    # Public API: ModBridge, AuditLogger, BridgeConfig
+│   │   ├── BridgeMod.SDK.csproj   # NuGet package (net8.0 + netstandard2.1)
+│   │   ├── IsExternalInit.cs      # C# 9+ polyfill for netstandard2.1
+│   │   └── README.md              # SDK-specific documentation
+│   └── DreamCraft.Engine/          # Python simulation engine (DreamCraft: Legacies)
+│       ├── simulation/             # 4-stage pulse engine
+│       ├── api/                    # FastAPI REST + WebSocket
+│       ├── llm/                    # Ollama-compatible LLM client
+│       ├── data/                   # Schema, seed, SQLite setup
+│       └── ...                     # Config, Docker, Makefile
+├── samples/
+│   └── Legacies_Bridge_Test/       # Integration sample (C# + Python)
+│       ├── Program.cs              # Annotated sample runner
+│       ├── pulse_test.py           # Python pytest validation suite
+│       └── Sample_Walkthrough.md  # Step-by-step developer tutorial
+├── tests/                          # SDK unit tests
+├── tools/                          # ModPackager, SchemaValidatorCLI
+├── docs/                           # Architecture and design docs
+├── examples/                       # Example mods
+└── .github/                        # CI/CD workflows
+```
+
+---
 
 ## Platform Support
 

@@ -1,35 +1,40 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
+    <!-- Library output — no entry point -->
+    <OutputType>Library</OutputType>
+    <!-- net8.0 (LTS) + netstandard2.1 for broadest Unity/Mono compatibility -->
+    <TargetFrameworks>net8.0;netstandard2.1</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <AssemblyName>BridgeMod.SDK</AssemblyName>
-    <RootNamespace>BridgeMod</RootNamespace>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>10</LangVersion>
 
     <!-- NuGet Package Metadata -->
     <PackageId>BridgeMod.SDK</PackageId>
-    <Version>0.2.2</Version>
-    <Title>BridgeMod SDK</Title>
-    <Description>Safe, developer-controlled mod loading for C#/.NET 10.0+ games. Load ZIP-based mod packages with manifest validation, sandbox execution, and automatic failure isolation. Declare moddable surfaces so modders know exactly what they can create. Console-safe data mods with no cloud dependency. Works with Unity, Godot, and any .NET game engine.</Description>
-    <Authors>The BridgeMod Project</Authors>
-    <PackageProjectUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</PackageProjectUrl>
+    <Version>0.2.4</Version>
+    <Authors>DreamCraft: Legacies Project</Authors>
+    <Company>DreamCraft</Company>
+    <Product>BridgeMod.SDK</Product>
+    <Description>
+      A security-first SDK for bridging PC modding toolchains with console game engines.
+      Provides a three-gate validation firewall (Deserialize, Boundary Guards, Audit Logger)
+      that sanitizes untrusted mod payloads before they reach the trusted console runtime.
+    </Description>
+    <PackageTags>console;modding;security;bridge;validation;unity;gamedev;sdk</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>modding;game-development;mods;validation;sandbox;console;pc;csharp;dotnet;unity;godot;game-engine;multiplatform;mod-loader;mod-validation;data-driven;ugc;user-generated-content;console-modding;xbox;playstation;game-modding;modding-sdk;offline;zip;manifest;safety;game-plugin</PackageTags>
-    <PackageReleaseNotes>v0.2.2: Added architecture diagram to documentation. Improved XML doc coverage for better IntelliSense. No API changes. Fully backward compatible.</PackageReleaseNotes>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Copyright>Copyright (c) 2026 The BridgeMod Project</Copyright>
+    <PackageProjectUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</PackageProjectUrl>
+    <Copyright>Copyright © 2024 DreamCraft: Legacies Project</Copyright>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <!-- Include README in the NuGet package (displayed on NuGet.org) -->
+    <!-- README.md lives alongside this .csproj at src/BridgeMod.SDK/ -->
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
