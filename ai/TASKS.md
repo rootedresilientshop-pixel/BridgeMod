@@ -1,47 +1,8 @@
-# Tasks: BridgeMod v0.2.4+ (Active & Planned)
-
-## Completed (v0.2.0 - Confidence Update)
-
-### ✅ Phase 1: Build Fixed
-- [x] Update all csproj files to target net10.0 consistently
-- [x] Create Program.cs stubs for ModPackager and SchemaValidatorCLI
-- [x] Update CI workflow to .NET 10.0 with solution-level builds
-- [x] Verify solution builds cleanly (0 errors)
-
-### ✅ Phase 2: Documentation Fixed
-- [x] Remove phantom API references from docs and examples
-- [x] Replace with actual SDK methods (GetFile, ValidateFilePath, CreateExecutionContext)
-- [x] Update version claims (.NET 6.0 → 10.0 everywhere)
-- [x] Fix .vscode/launch.json launch configuration
-
-### ✅ Phase 3: Repository Cleaned
-- [x] Create docs/internal/ directory
-- [x] Move internal planning docs to docs/internal/
-- [x] Create docs/internal/README.md explaining folder purpose
-- [x] Update cross-references to point to new location
-
-### ✅ Phase 4: NuGet Improved
-- [x] Update package version to 0.2.0
-- [x] Update package description to reflect .NET 10.0+
-- [x] Add PackageReadmeFile to embed README in package
-- [x] Verify code samples compile against live API
-
-### ✅ Phase 5: Compiler Warnings Fixed
-- [x] Fix nullable reference warnings (CS8620) in ModSchema.cs
-- [x] Add XML doc comments to all public members
-- [x] Eliminate XML documentation warnings (CS1591)
-- [x] Achieve zero warnings in Release build
-
-### ✅ Phase 6: Release Prepared (v0.2.0)
-- [x] Update CHANGELOG.md with v0.2.0 entry
-- [x] Create comprehensive git commit
-- [x] Tag v0.2.0 and push to remote
-- [x] Create GitHub Release with detailed notes
-- [x] Publish to NuGet
+# Tasks: BridgeMod (Active & Planned)
 
 ---
 
-## ✅ Phase 1: Security Foundation — 100% COMPLETE (v0.2.4)
+## ✅ Phase 1: Security Foundation — COMPLETE (v0.2.4)
 
 ### ✅ Firewall Standard Architecture
 - [x] Design and implement 3-gate C# validation pipeline (Type Check → Boundary Guards → Audit Logging)
@@ -58,97 +19,76 @@
 ### ✅ Repository Overhaul (v0.2.4)
 - [x] Move to professional `/src/` + `/samples/` layout
 - [x] Replace legacy `/sdk/` with `/src/BridgeMod.SDK` as single source of truth
-- [x] Create `/src/DreamCraft.Engine` (isolated Python core)
-- [x] Create `/samples/Legacies_Bridge_Test` (end-to-end integration proof)
 - [x] Publish BridgeMod.SDK v0.2.4 to NuGet and verify NuGet sync
 
----
-
-## Active (Phase 2 — Schema Registry)
-
-### 🔥 Schema Registry (TOP PRIORITY — Phase 2 Start)
-- [ ] Design schema registry architecture: how Python engine definitions map to C# validation rules
-- [ ] Build a tool to auto-generate C# validation rules from Python engine definitions
-- [ ] Expand `AuditLogger` to support external file export (write audit logs to disk)
-- [ ] Write tests covering schema registry validation paths
-- [ ] Update docs to reflect new Schema Registry tooling
-
-### 📊 Gathering Feedback (In Progress)
-- [ ] Post on Reddit (r/csharp, r/gamedev, r/Unity, r/godot)
-- [ ] Set up GitHub Discussions with categories:
-  - [ ] Show & Tell
-  - [ ] Questions
-  - [ ] Ideas / Feature Requests
-  - [ ] Showcase (games using BridgeMod)
-- [ ] Track metrics: downloads, GitHub stars, issues, engagement
-- [ ] Monitor for "We're using this in production" feedback
-
-### 🎯 Community Engagement (In Progress)
-- [ ] Respond to GitHub issues and Discussions
-- [ ] Track which features/pain points come up repeatedly
-- [ ] Identify game studios/developers using BridgeMod
-- [ ] Document real-world use cases
+### Quality (Phase 1 Baseline)
+- [x] 0 build errors, 0 compiler warnings (Release build)
+- [x] 11/11 Phase 1 tests passing
+- [x] 100% public API documented
 
 ---
 
-## Pending: Phase 2 Remainder (After Schema Registry)
+## ✅ Phase 2: Developer Mod Surfaces — COMPLETE (v0.3.0)
 
-### 🔄 Enhanced Mod Surfaces
-- [ ] Design surface versioning system
-- [ ] Implement capability matrix generation
-- [ ] Add surface dependency tracking
-- [ ] Improve documentation discovery for modders
-- [ ] Create v0.3.0 release
+### ✅ Core Types Added
+- [x] `ModSurfaceCategory.cs` — enum: Data, BehaviorGraphs, ProceduralInputs
+- [x] `ModSurfaceStatus.cs` — enum: Enabled, Limited, Disabled, Planned
+- [x] `ModSurfaceDeclaration.cs` — sealed immutable record; ArgumentException on null/empty name or description
+- [x] `ModSurfaceRegistry.cs` — append-only host registry; InvalidOperationException on duplicate name; IReadOnlyList exposure
+- [x] `ModSurfaceSummaryGenerator.cs` — pure string generator; no I/O; groups by category alphabetically; orders surfaces alphabetically
 
-### 📋 Expected Work
-- [ ] Add versioning to ModSurfaceDeclaration
-- [ ] Generate capability matrix JSON
-- [ ] Update examples to show advanced surface features
-- [ ] Run 26/26 tests; verify zero warnings
+### ✅ Tests
+- [x] `tests/ModSurfaceTests.cs` — 20 tests covering:
+  - Duplicate surface registration throws
+  - Null registration throws
+  - Empty/null/whitespace name throws
+  - Empty description throws
+  - Summary groups by category correctly
+  - Summary orders surfaces alphabetically within category
+  - Summary orders categories alphabetically
+  - Status appears in output
+  - Title appears in output
+  - Empty registry returns notice string
 
-### 📊 Go/No-Go Decision Point
-- **Go if:** 20+ downloads/week AND at least 3 "we're using this" confirmations
-- **No-go if:** Downloads trending downward AND no community engagement
-- **Timeline:** Review after 1 month of v0.2.4 being live
+### ✅ Documentation
+- [x] README.md — Phase 2 section: categories table, status table, example matrix, no-scripting statements
+- [x] `docs/Phase2_Mod_Surfaces.md` — full architectural reference
+
+### ✅ Release
+- [x] SDK version bumped to 0.3.0 in `BridgeMod.SDK.csproj`
+- [x] Commit `ffa5764` on main with archival message
+- [x] Tag `v0.3.0` pushed to origin
+- [x] 31/31 tests passing (11 Phase 1 + 20 Phase 2)
+- [x] 0 build warnings
+
+### ✅ Compatibility Verified
+- [x] No existing public APIs modified
+- [x] No execution interfaces changed
+- [x] No Phase 1 test expectations altered
+- [x] Purely additive — safe to merge forward into Phase 3
 
 ---
 
-## Planned: Phase 3 (Behavior Graphs - Future)
+## Active (Phase 3 — Behavior Graph Runtime)
 
-### 🎮 Behavior Graph Runtime
-- [ ] Design deterministic graph executor
-- [ ] Implement time limit enforcement per graph execution
+### 🎯 Key Decisions Needed Before Starting
+- [ ] Execution model: step-based vs. tick-based
+- [ ] Time budget per execution (hard limit in microseconds?)
+- [ ] Node type library: decision nodes, state nodes, action nodes — which first?
+- [ ] Graph complexity limits (max depth, max nodes, max edges)
+- [ ] How graphs are authored (declarative JSON/XML? custom format?)
+
+### 📋 Implementation Tasks (Pending Decisions)
+- [ ] Design deterministic graph executor spec
+- [ ] Implement core graph traversal engine
+- [ ] Add time limit enforcement per graph execution
 - [ ] Add depth limit enforcement
-- [ ] Add debug logging and profiling
+- [ ] Add debug logging and profiling hooks
 - [ ] Create state machine validation
 - [ ] Write 20+ tests for graph execution
 - [ ] Document graph format and limitations
+- [ ] Verify all Phase 1 + Phase 2 tests still pass
 - [ ] Create v0.4.0 release
-
-### 🎯 Key Decisions Needed
-- Execution model (step-based vs. tick-based)
-- Time budget per execution
-- Node type library (decision nodes, state nodes, action nodes)
-- Graph complexity limits
-
----
-
-## Planned: Phase 4 (Procedural Control - Future)
-
-### 🌍 Procedural Generation Parameters
-- [ ] Design parameter validation schema
-- [ ] Implement seed validation
-- [ ] Add generation bounds checking
-- [ ] Create v0.5.0 release
-
----
-
-## Planned: Phase 5 (Cloud Services - Future)
-
-### ☁️ Optional Cloud Validation
-- [ ] Design cloud validation service (optional)
-- [ ] Implement opt-in telemetry (privacy-first)
-- [ ] Create v0.6.0+ release
 
 ---
 
@@ -160,73 +100,62 @@
 - [ ] Respond to documentation issues in GitHub
 
 ### 🧪 Test Coverage
-- [ ] Maintain 26+ tests passing for v0.2.0
-- [ ] Add tests for Phase 2, 3, 4 features as they're implemented
+- [ ] Maintain 31+ tests passing
+- [ ] Add tests for Phase 3, 4, 5 features as they're implemented
 - [ ] Verify zero warnings in Release builds
 
-### 🎮 Engagement
+### 📊 Community Engagement
 - [ ] Monitor GitHub Discussions
 - [ ] Respond to issues within 48 hours
-- [ ] Track real-world use cases
-- [ ] Celebrate public projects using BridgeMod
+- [ ] Track real-world use cases and "using in production" confirmations
+- [ ] Post Phase 2 release notes on Reddit (r/csharp, r/gamedev)
+
+---
+
+## Planned: Phase 4 (Procedural Control)
+
+- [ ] Design parameter validation schema for procedural inputs
+- [ ] Implement seed validation
+- [ ] Add generation bounds checking
+- [ ] Create v0.5.0 release
+
+---
+
+## Planned: Phase 5 (Cloud Services)
+
+- [ ] Design optional cloud validation service
+- [ ] Implement opt-in telemetry (privacy-first)
+- [ ] Create v0.6.0+ release
 
 ---
 
 ## Decision Points
 
-### After 1 Month (March 15, 2026)
-**Question:** Is there evidence of real adoption?
+### After Phase 3 (Post-v0.4.0)
+**Question:** Does behavior graph support unlock new use cases?
 
-**Metrics to Check:**
-- Downloads/week: trending up or down?
-- GitHub issues: any real usage problems?
-- Reddit engagement: positive or silent?
-- "Using in production" testimonials: any?
-
-**Decision:**
-- ✅ **Proceed to Phase 2** if: 20+ downloads/week + community engagement
-- ⏸️ **Iterate v0.2.x** if: slow downloads but solid technical interest
-- 🔄 **Reassess positioning** if: declining downloads + no engagement
-
-### After Phase 2 (Post-v0.3.0)
-**Question:** Do enhanced surfaces unlock new use cases?
-
-**Metric:** Same as above, but with higher thresholds
-
-**Decision:**
-- ✅ **Proceed to Phase 3** if: clear feature requests for behavior graphs
-- ⏸️ **Extend Phase 2** if: still building v0.3.0 adoption
-
----
-
-## Blocked/At Risk (None Currently)
-
-v0.2.0 cleared all blockers:
-- ✅ Build system fixed
-- ✅ Documentation accurate
-- ✅ Compiler warnings eliminated
-- ✅ Released to GitHub and NuGet
+**Signals to look for:**
+- Game developers referencing BehaviorGraphs surfaces in Phase 2 registries
+- Feature requests for specific node types
+- Community-authored example graphs
 
 ---
 
 ## Backlog: If Adoption Accelerates
 
-If BridgeMod gains rapid adoption, priority order:
-
 1. Improve ModPackager tool (currently stub)
 2. Improve SchemaValidator tool (currently stub)
-3. Create example end-to-end project (repo + runnable)
-4. Add behavior graph support (Phase 3)
-5. Add monetization/sponsorship pathway
+3. Create runnable example end-to-end project
+4. Add monetization/sponsorship pathway
+5. Phase 3 behavior graph support
 
 ---
 
-## Success Criteria (v0.2.0)
+## Success Criteria (v0.3.0) — ALL MET
 
 - ✅ Zero build errors, zero compiler warnings
-- ✅ 26/26 tests passing
+- ✅ 31/31 tests passing
 - ✅ All public members documented
-- ✅ GitHub Release published
-- ✅ NuGet package live
-- ⏳ Waiting: Real developer feedback
-- ⏳ Waiting: Adoption metrics
+- ✅ Commit and tag pushed to main
+- ✅ No existing runtime behavior changed
+- ✅ Phase 3 merge safety verified
