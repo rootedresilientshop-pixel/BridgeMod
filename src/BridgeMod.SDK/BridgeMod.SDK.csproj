@@ -11,7 +11,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>BridgeMod.SDK</PackageId>
-    <Version>0.2.4</Version>
+    <Version>0.3.0</Version>
     <Authors>DreamCraft: Legacies Project</Authors>
     <Company>DreamCraft</Company>
     <Product>BridgeMod.SDK</Product>

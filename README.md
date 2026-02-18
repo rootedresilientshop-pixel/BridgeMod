@@ -8,9 +8,10 @@ Build your mod system once. It works on PC, ports to console, and never needs re
 
 [![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
 
-### 🚀 Status: v0.2.4 Live
-**Milestone:** Phase 1 (Security Foundation) — **Complete** ✅  
-**Latest News:** [Establishing the Firewall Standard (Feb 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
+### 🚀 Status: v0.3.0 Live
+**Milestone:** Phase 2 (Developer Mod Surfaces) — **Complete** ✅
+**Previous:** Phase 1 (Security Foundation) — **Complete** ✅
+**Latest News:** [Phase 2 — Developer Mod Surface Declarations (Feb 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
 ## Why BridgeMod Exists
 
 We believe:
@@ -184,11 +185,103 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-## What's Next (Phase 2+)
+## Phase 2 — Developer Mod Surfaces
+
+**Status: Complete ✅**
+
+Phase 2 introduces a declarative governance layer that allows game developers to formally register the mod surfaces their game exposes. This is a transparency and documentation layer — it carries no runtime behavior.
+
+### Purpose
+
+Phase 2 exists to answer one fundamental question for every game that ships BridgeMod:
+
+> *Which parts of this game can be modded, by whom, and under what constraints?*
+
+Without a formal answer, modders guess and developers scramble. With Phase 2, the host declares surfaces explicitly — and the SDK can generate a human-readable capability matrix from those declarations automatically.
+
+### Surface Categories
+
+| Category | What It Covers |
+|----------|---------------|
+| `Data` | JSON configs, stat tables, balance sheets, item definitions — anything data-driven. No executable content. |
+| `BehaviorGraphs` | State machines and event-condition-action (ECA) rule graphs expressed as declarative node structures. No scripting. |
+| `ProceduralInputs` | Seeds, weightings, and generation parameters for procedural systems. Numeric and symbolic values only. |
+
+### Surface Status Values
+
+| Status | Meaning |
+|--------|---------|
+| `Enabled` | Fully open for modding within declared constraints. |
+| `Limited` | Available with reduced scope or additional restrictions. |
+| `Disabled` | Exists but is not available for modding. Declared for transparency. |
+| `Planned` | On the roadmap — declared early to signal intent. |
+
+### Capability Matrix
+
+The `ModSurfaceSummaryGenerator` accepts a populated `ModSurfaceRegistry` and produces a formatted, human-readable capability matrix string. It groups surfaces by category (alphabetically) and orders surfaces within each group alphabetically by name.
+
+**Example output:**
+
+```
+=== MyGame — Mod Capability Matrix ===
+
+[BehaviorGraphs]
+  EnemyAI [Limited]
+    Enemy decision trees — read-only graph nodes only.
+
+[Data]
+  CharacterStats [Enabled]
+    Stat tables for all playable characters.
+  WeaponBalance [Enabled]
+    Weapon base damage and scaling factors.
+
+[ProceduralInputs]
+  WorldSeed [Disabled]
+    Reserved for host use only.
+```
+
+### What Phase 2 Does NOT Introduce
+
+- **No scripting.** No executable content of any kind.
+- **No runtime execution changes.** Validation, audit logging, and firewall behavior are unmodified.
+- **No deterministic integrity changes.** The execution pipeline remains 100% deterministic.
+- **No new dependencies.** Pure .NET — no external packages.
+- **Mods cannot declare surfaces.** Only the host (game developer) registers surfaces. Mods have no access to the registry.
+- **Host retains full control.** Status values are governance metadata; enforcement is the host's responsibility.
+
+### Example Usage
+
+```csharp
+// During game initialization — register your mod surfaces
+var registry = new ModSurfaceRegistry();
+
+registry.Register(new ModSurfaceDeclaration(
+    name: "WeaponBalance",
+    category: ModSurfaceCategory.Data,
+    status: ModSurfaceStatus.Enabled,
+    description: "Weapon base damage and scaling factors."));
+
+registry.Register(new ModSurfaceDeclaration(
+    name: "EnemyAI",
+    category: ModSurfaceCategory.BehaviorGraphs,
+    status: ModSurfaceStatus.Limited,
+    description: "Enemy decision trees — read-only graph nodes only."));
+
+// Generate the capability matrix for documentation or display
+string matrix = ModSurfaceSummaryGenerator.Generate(registry, "MyGame");
+// Consume as needed — write to file, serve via API, display in-game, etc.
+```
+
+See [docs/Phase2_Mod_Surfaces.md](docs/Phase2_Mod_Surfaces.md) for the full architectural reference.
+
+Phase 2 establishes a formal governance layer for mod exposure. Future phases will build upon this structured foundation while preserving deterministic execution guarantees.
+
+---
+
+## What's Next (Phase 3+)
 
 From our [roadmap](docs/internal/console_modding_execution_plan.md):
 
-- **Phase 2:** Enhanced mod surface declarations
 - **Phase 3:** Behavior graph runtime executor
 - **Phase 4:** Procedural control layer
 - **Phase 5:** Optional cloud validation services

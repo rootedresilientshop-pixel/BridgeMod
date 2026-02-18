@@ -20,4 +20,9 @@
     <ProjectReference Include="..\src\BridgeMod.SDK\BridgeMod.SDK.csproj" />
   </ItemGroup>
 
+  <!-- Exclude automation tests that target future phases not present on main -->
+  <ItemGroup>
+    <Compile Remove="Automation\**\*.cs" />
+  </ItemGroup>
+
 </Project>
