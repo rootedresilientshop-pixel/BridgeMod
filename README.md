@@ -125,6 +125,19 @@ BridgeMod/
 
 Build your mod system on PC. When you port to console, BridgeMod comes with you — same code, same validation, same safety guarantees.
 
+## Architectural Authority
+
+**BridgeMod defines the canonical mod contract. Engines adapt to BridgeMod.**
+
+The C# SDK is the authoritative firewall for all mod validation. The mod manifest shape, data payload structure, and validation rules are defined in the SDK and are engine-agnostic. Game engines (such as DreamCraft.Engine, Unity, Godot, or custom C# runtimes) consume mod data that has already been validated and sanitized by the BridgeMod firewall.
+
+**Why this matters:**
+- **Single source of truth:** Validation rules live in one place (the C# SDK). No engine defines rules upstream.
+- **Multi-engine support:** The same BridgeMod SDK works with any engine that accepts pre-validated JSON.
+- **Safety guarantees:** The firewall is consistent across all platforms and engines.
+
+For engine teams integrating BridgeMod: Your engine does not define validation rules. Instead, you implement an **adapter** that consumes the sanitized mod data that BridgeMod produces. See [Engine Adapter Model](docs/Engine_Adapter_Model.md) for guidance on building adapters for custom engines.
+
 ## Getting Started
 
 ### For Game Developers
