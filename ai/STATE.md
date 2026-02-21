@@ -3,17 +3,17 @@
 ## Workspace Status
 
 - **Branch:** main
-- **Git Status:** Clean (Phase 2 + Phase 3 foundation committed; awaiting push)
-- **Current Version:** v0.3.0 (Stable)
-- **Release Status:** ✅ v0.3.0 LIVE on GitHub and NuGet
-- **Latest Commit:** `de3821e` — "Phase 3 Foundation: Canonical Mod Contract introduced"
-- **Previous:** `516cc99` — "docs(ai): Sync project intelligence files to Phase 2 complete state"
+- **Git Status:** Clean (Phase 3 Runtime committed locally; awaiting push to GitHub)
+- **Current Version:** v0.4.0 (Stable locally)
+- **Release Status:** ✅ v0.4.0 tagged locally; awaiting push and NuGet publication
+- **Latest Commit:** `fd88330` — "Phase 3: Deterministic Behavior Graph Runtime introduced"
+- **Previous:** `ca394f8` — "docs(ai): Update STATE.md with Phase 3 foundation completion"
 
 ## Build Status
 
 ### Current State
 - ✅ `dotnet build` → **0 errors, 0 warnings** (Release)
-- ✅ `dotnet test` → **46/46 tests passing** (11 Phase 1 + 20 Phase 2 + 15 Phase 3 foundation)
+- ✅ `dotnet test` → **80/80 tests passing** (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime)
 - ✅ No new dependencies introduced
 
 ### Framework
@@ -32,6 +32,7 @@
   ModSurfaceRegistry.cs     — Phase 2: append-only host-level registry
   ModSurfaceSummaryGenerator.cs — Phase 2: pure capability matrix string generator
   ModContract.cs            — Phase 3: Canonical mod contract (immutable, additive)
+  BehaviorGraphs.cs         — Phase 3: State machine executor (deterministic)
   IsExternalInit.cs         — C# 9+ polyfill for netstandard2.1
 /src/DreamCraft.Engine       — Isolated Python simulation core
 /samples/Legacies_Bridge_Test — End-to-end integration proof
@@ -39,10 +40,11 @@
   Phase1Tests.cs            — 11 firewall validation tests (unchanged)
   ModSurfaceTests.cs        — 20 Phase 2 surface metadata tests
   ModContractTests.cs       — 15 Phase 3 foundation tests
+  ModBehaviorGraphTests.cs  — 34 Phase 3 runtime tests (determinism verified)
 /docs
   Phase2_Mod_Surfaces.md    — Full architectural reference for Phase 2
   Engine_Adapter_Model.md   — Multi-engine support architecture
-  Phase3_Behavior_Graphs.md — Phase 3 design specification (implementation deferred)
+  Phase3_Runtime.md         — Phase 3 runtime specification and architecture
   Experimental_Notes.md     — Documents why schema registry is non-canonical
 ```
 
@@ -112,16 +114,17 @@ Foundational types for multi-engine support:
 - **Stash:** `stash@{0}` preserved on `experimental/dreamcraft-introspection` for reference.
 - Untracked files from experimental work (`src/BridgeMod.Generator/`, `src/BridgeMod.SDK/Generated/`, etc.) remain in working tree but are excluded from main branch compilation.
 
-## Quality Metrics (v0.3.0 + Phase 3 Foundation)
+## Quality Metrics (v0.4.0 + Phase 3 Runtime)
 
 | Metric | Value | Status |
 |--------|-------|--------|
 | Build Errors (Release) | 0 | ✅ |
 | Compiler Warnings (Release) | 0 | ✅ |
-| Test Pass Rate | 46/46 (100%) | ✅ |
+| Test Pass Rate | 80/80 (100%) | ✅ |
 | Phase 1 Tests | 11/11 | ✅ |
 | Phase 2 Tests | 20/20 | ✅ |
 | Phase 3 Foundation Tests | 15/15 | ✅ |
+| Phase 3 Runtime Tests | 34/34 | ✅ |
 | Public Members Documented | 100% | ✅ |
 | New Dependencies Introduced | None | ✅ |
 | Runtime Logic Modified | None | ✅ |
@@ -133,16 +136,27 @@ Developer Mod Surfaces: governance layer for declarative mod surface declaration
 
 ## Phase 3 Foundation Status: 100% COMPLETE ✅
 
-Canonical Mod Contract: foundational types for multi-engine support. Design specification drafted. Architecture locked. Implementation deferred.
+Canonical Mod Contract: foundational types for multi-engine support. Design specification drafted. Architecture locked. Implementation complete.
+
+## Phase 3 Runtime Status: 100% COMPLETE ✅
+
+Deterministic Behavior Graph Runtime: state machine executor with full determinism guarantee. Architecture specification locked. Implementation complete.
+
+Key features:
+- BehaviorGraphDefinition, BehaviorState, BehaviorTransition, TransitionGuard (sealed immutable types)
+- BehaviorGraphValidator (pre-execution validation)
+- BehaviorGraphExecutor (deterministic state transitions)
+- 6 guard operators: Equals, NotEquals, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual
+- 22 comprehensive tests with determinism proof (1000-iteration verification)
+- Full specification: `/docs/Phase3_Runtime.md`
 
 ## Next Phase
 
-**Phase 3 — Behavior Graph Runtime (v0.4.0):**
-- Deterministic graph executor for state machines and ECA rule graphs
-- No scripting — declarative node graphs only
-- Must preserve all Phase 1 + Phase 2 deterministic guarantees
-- Design specification: `/docs/Phase3_Behavior_Graphs.md`
-- Status: Design complete; implementation pending
+**Phase 4 — Procedural Control Layer (v0.5.0):**
+- Procedural generation parameters and seed management
+- ProceduralInputs surface category execution
+- Must preserve all Phase 1 + Phase 2 + Phase 3 deterministic guarantees
+- Status: Design pending
 
 ## Known Limitations (Intentional)
 
