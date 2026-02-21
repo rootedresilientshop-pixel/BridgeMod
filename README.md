@@ -8,10 +8,11 @@ Build your mod system once. It works on PC, ports to console, and never needs re
 
 [![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
 
-### 🚀 Status: v0.3.0 Live
-**Milestone:** Phase 2 (Developer Mod Surfaces) — **Complete** ✅
+### 🚀 Status: v0.4.0 Live
+**Milestone:** Phase 3 (Behavior Graph Runtime) — **Complete** ✅
+**Previous:** Phase 2 (Developer Mod Surfaces) — **Complete** ✅
 **Previous:** Phase 1 (Security Foundation) — **Complete** ✅
-**Latest News:** [Phase 2 — Developer Mod Surface Declarations (Feb 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
+**Latest News:** [Phase 3 — Deterministic Behavior Graph Runtime (Feb 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
 ## Why BridgeMod Exists
 
 We believe:
@@ -291,11 +292,179 @@ Phase 2 establishes a formal governance layer for mod exposure. Future phases wi
 
 ---
 
-## What's Next (Phase 3+)
+## Phase 3 — Deterministic Behavior Graph Runtime
+
+**Status: Complete ✅**
+
+Phase 3 introduces a minimal, deterministic state machine executor for behavior graphs—declarative node structures that define game logic without scripting.
+
+### Purpose
+
+Phase 3 unlocks the **BehaviorGraphs** surface category introduced in Phase 2. While Phase 2 allowed developers to declare that they support behavior graphs, Phase 3 provides the execution engine to actually run them.
+
+Game logic can now be expressed as:
+- **State machines** with transitions driven by events
+- **Guard conditions** that restrict transitions based on context (numeric comparisons, string matching)
+- **Deterministic execution** with no randomness, reflection, or dynamic loading
+
+### Core Concepts
+
+**BehaviorGraphDefinition** — An immutable, validated graph structure:
+```csharp
+var graph = new BehaviorGraphDefinition(
+    graphId: "enemy_ai",
+    version: "1.0",
+    states: new[] {
+        new BehaviorState("idle"),
+        new BehaviorState("patrol"),
+        new BehaviorState("combat")
+    },
+    initialStateId: "idle",
+    transitions: new[] {
+        new BehaviorTransition("idle", "patrol", "spotted_player"),
+        new BehaviorTransition("patrol", "combat", "player_nearby",
+            guard: new TransitionGuard("distance", GuardOperator.LessThan, 5.0f))
+    }
+);
+```
+
+**BehaviorGraphValidator** — Pre-execution validation:
+```csharp
+var errors = BehaviorGraphValidator.Validate(graph);
+if (errors.Any())
+    throw new InvalidOperationException($"Graph has errors: {string.Join(", ", errors)}");
+```
+
+**BehaviorGraphExecutor** — Deterministic state transitions:
+```csharp
+var executor = new BehaviorGraphExecutor(graph);
+executor.Initialize();
+
+// Dispatch events with context
+var context = new Dictionary<string, object> { { "distance", 3.5f } };
+var result = executor.Dispatch("player_nearby", context);
+// Result: executor.CurrentStateId == "combat" (guard condition passed)
+```
+
+### Determinism Guarantee
+
+**Same input → Same output. Always.**
+
+Every execution is deterministic:
+- No randomness or stochasticity
+- No reflection or dynamic evaluation
+- No async or threading
+- Same graph + same events + same context values = identical state transitions, every time
+
+This makes behavior graphs safe for replays, testing, and console certification.
+
+### Guard Operators
+
+Transitions can be guarded by context-based conditions:
+
+| Operator | Type | Example |
+|----------|------|---------|
+| `Equals` | All primitives | `health == 100` |
+| `NotEquals` | All primitives | `status != "dead"` |
+| `GreaterThan` | Numeric only | `distance > 5.0` |
+| `LessThan` | Numeric only | `mana < 20` |
+| `GreaterThanOrEqual` | Numeric only | `level >= 10` |
+| `LessThanOrEqual` | Numeric only | `stamina <= 50` |
+
+**Important:** Guard conditions support only primitive types (int, float, bool, string). Complex object comparisons are not supported—this ensures determinism.
+
+### What Phase 3 Does NOT Include
+
+- **No scripting.** Graphs are declarative node structures only. No C#, Python, Lua, or other scripting languages.
+- **No dynamic code loading or reflection.** Execution is fully deterministic and traceable.
+- **No async or concurrent execution.** Single-threaded, synchronous state transitions only.
+- **No networking or I/O.** Graphs are data-in, data-out. No external side effects.
+
+### Example: Enemy AI
+
+```csharp
+// Define an enemy AI graph
+var enemyAI = new BehaviorGraphDefinition(
+    graphId: "orc_ai",
+    version: "1.0",
+    states: new[]
+    {
+        new BehaviorState("idle", displayName: "Waiting"),
+        new BehaviorState("alert", displayName: "Alert"),
+        new BehaviorState("chase", displayName: "Chasing Player"),
+        new BehaviorState("attack", displayName: "Attacking")
+    },
+    initialStateId: "idle",
+    transitions: new[]
+    {
+        // idle → alert (heard sound)
+        new BehaviorTransition("idle", "alert", "heard_sound"),
+
+        // alert → chase (player in sight range)
+        new BehaviorTransition("alert", "chase", "player_spotted",
+            guard: new TransitionGuard("sight_range", GuardOperator.LessThan, 50.0f)),
+
+        // chase → attack (close enough to melee)
+        new BehaviorTransition("chase", "attack", "player_in_range",
+            guard: new TransitionGuard("distance", GuardOperator.LessThan, 2.5f)),
+
+        // attack → chase (player out of melee range)
+        new BehaviorTransition("attack", "chase", "player_dodged",
+            guard: new TransitionGuard("distance", GuardOperator.GreaterThan, 2.5f)),
+
+        // chase → alert (lost sight)
+        new BehaviorTransition("chase", "alert", "lost_player")
+    }
+);
+
+// Validate the graph (catches errors before runtime)
+var errors = BehaviorGraphValidator.Validate(enemyAI);
+if (errors.Any())
+    throw new InvalidOperationException("Graph validation failed");
+
+// Create executor and run
+var executor = new BehaviorGraphExecutor(enemyAI);
+executor.Initialize();
+
+// Game loop: dispatch events with context
+while (gameRunning)
+{
+    var context = new Dictionary<string, object>
+    {
+        { "sight_range", (float)Vector3.Distance(enemy.Position, player.Position) },
+        { "distance", (float)Vector3.Distance(enemy.Position, player.Position) }
+    };
+
+    if (heardPlayerSound)
+        executor.Dispatch("heard_sound", context);
+
+    if (canSeePlayer)
+        executor.Dispatch("player_spotted", context);
+
+    // ... handle other events ...
+
+    // executor.CurrentStateId now reflects the AI's decision
+    ApplyAIBehavior(executor.CurrentStateId);
+}
+```
+
+### How This Integrates with BridgeMod
+
+1. **Phase 2** allows developers to declare `BehaviorGraphs` surfaces via `ModSurfaceRegistry`
+2. **Phase 3** provides the engine to execute declared behavior graph mods
+3. Mods package `.json` files containing graph definitions
+4. BridgeMod validates the JSON structure (via Phase 1 firewall)
+5. The host game loads and executes the graph using `BehaviorGraphExecutor`
+6. All guarantees (determinism, no scripting, no reflection) are preserved
+
+See [docs/Phase3_Runtime.md](docs/Phase3_Runtime.md) for the full architectural specification.
+
+---
+
+## What's Next (Phase 4+)
 
 From our [roadmap](docs/internal/console_modding_execution_plan.md):
 
-- **Phase 3:** Behavior graph runtime executor
 - **Phase 4:** Procedural control layer
 - **Phase 5:** Optional cloud validation services
 
