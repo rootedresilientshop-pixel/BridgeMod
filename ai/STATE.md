@@ -1,18 +1,19 @@
-# State: BridgeMod v0.3.0 (Phase 2 — Developer Mod Surfaces — Complete)
+# State: BridgeMod v0.3.0 (Phase 3 Foundation — Architectural Authority Established)
 
 ## Workspace Status
 
 - **Branch:** main
-- **Git Status:** Clean (all Phase 2 changes committed and pushed)
+- **Git Status:** Clean (Phase 2 + Phase 3 foundation committed; awaiting push)
 - **Current Version:** v0.3.0 (Stable)
-- **Release Status:** ✅ LIVE on GitHub; tag `v0.3.0` pushed
-- **Commit:** `ffa5764` — "Phase 2: Introduce Developer Mod Surface Declarations"
+- **Release Status:** ✅ v0.3.0 LIVE on GitHub and NuGet
+- **Latest Commit:** `de3821e` — "Phase 3 Foundation: Canonical Mod Contract introduced"
+- **Previous:** `516cc99` — "docs(ai): Sync project intelligence files to Phase 2 complete state"
 
 ## Build Status
 
 ### Current State
 - ✅ `dotnet build` → **0 errors, 0 warnings** (Release)
-- ✅ `dotnet test` → **31/31 tests passing** (11 Phase 1 + 20 Phase 2)
+- ✅ `dotnet test` → **46/46 tests passing** (11 Phase 1 + 20 Phase 2 + 15 Phase 3 foundation)
 - ✅ No new dependencies introduced
 
 ### Framework
@@ -20,7 +21,7 @@
 - **Tests target:** `net10.0`
 - **CI Workflow:** `.github/workflows/build.yml` → .NET 10.0 (all platforms) ✅
 
-## Repository Structure (v0.3.0)
+## Repository Structure (v0.3.0 + Phase 3 Foundation)
 
 ```
 /src/BridgeMod.SDK          — Authoritative C# library (single source of truth)
@@ -30,14 +31,19 @@
   ModSurfaceDeclaration.cs  — Phase 2: sealed immutable surface record
   ModSurfaceRegistry.cs     — Phase 2: append-only host-level registry
   ModSurfaceSummaryGenerator.cs — Phase 2: pure capability matrix string generator
+  ModContract.cs            — Phase 3: Canonical mod contract (immutable, additive)
   IsExternalInit.cs         — C# 9+ polyfill for netstandard2.1
 /src/DreamCraft.Engine       — Isolated Python simulation core
 /samples/Legacies_Bridge_Test — End-to-end integration proof
 /tests
   Phase1Tests.cs            — 11 firewall validation tests (unchanged)
   ModSurfaceTests.cs        — 20 Phase 2 surface metadata tests
+  ModContractTests.cs       — 15 Phase 3 foundation tests
 /docs
   Phase2_Mod_Surfaces.md    — Full architectural reference for Phase 2
+  Engine_Adapter_Model.md   — Multi-engine support architecture
+  Phase3_Behavior_Graphs.md — Phase 3 design specification (implementation deferred)
+  Experimental_Notes.md     — Documents why schema registry is non-canonical
 ```
 
 > **Note:** `tests/BridgeMod.Tests.csproj` excludes `tests/Automation/` (belongs to dev/phase-2-automation branch; not part of main).
@@ -62,6 +68,20 @@ Host-level mod exposure boundary system:
 
 **Phase 2 Runtime Guarantee:** Zero runtime execution changes. Deterministic guarantees from Phase 1 fully preserved.
 
+## Canonical Mod Contract: "Architectural Authority" (Phase 3 Foundation — Complete)
+
+Foundational types for multi-engine support:
+- **`ModContract` namespace** — Engine-agnostic canonical types (immutable, additive-safe)
+- **`ModManifest`** — Authoritative mod package shape
+- **`ModPayload`** — Validated mod data container
+- **`ModConstraints`** — Deterministic guarantees declarations
+- **`ValidationMetadata`** — Validation audit information
+- **`ExecutionConstraints`** — Phase 3+ graph execution bounds (reserved for future use)
+
+**Architectural Principle (Locked):** BridgeMod defines the contract; engines implement adapters. No engine defines validation rules upstream.
+
+**Phase 3 Foundation Guarantee:** Canonical contract is stable and additive-only. No removals or renames for 5+ phases.
+
 ## What Exists (Verified)
 
 ### /src/BridgeMod.SDK (C# Library)
@@ -71,6 +91,12 @@ Host-level mod exposure boundary system:
 - ✅ `ModSurfaceDeclaration` — sealed, immutable surface record
 - ✅ `ModSurfaceRegistry` — append-only, duplicate-safe host registry
 - ✅ `ModSurfaceSummaryGenerator` — pure capability matrix generator
+- ✅ `ModContract` namespace (Phase 3 foundation)
+  - `ModManifest` — canonical mod package shape
+  - `ModPayload` — validated mod data container
+  - `ModConstraints` — deterministic declarations
+  - `ValidationMetadata` — validation audit trail
+  - `ExecutionConstraints` — graph execution bounds (reserved)
 
 ### /src/DreamCraft.Engine (Python Simulation Core)
 - ✅ Isolated from SDK; only consumes scrubbed JSON
@@ -79,41 +105,59 @@ Host-level mod exposure boundary system:
 ### /samples/Legacies_Bridge_Test (Integration Proof)
 - ✅ End-to-end validation verified
 
-## Stash State
+## Branch State
 
-- **`dev/phase-2-automation` WIP** is stashed on the `dev/phase-2-automation` branch.
-- Untracked files from that branch (`src/BridgeMod.Generator/`, `src/BridgeMod.SDK/Generated/`, `src/BridgeMod.SDK/SchemaRegistry.cs`, `tests/Automation/`) remain in the working tree but are excluded from main branch compilation.
+- **`main`** — Production. Phase 1 + Phase 2 + Phase 3 Foundation. All tests passing.
+- **`experimental/dreamcraft-introspection`** — Renamed from `dev/phase-2-automation`. Contains optional schema registry tooling (non-canonical reference implementation). Does not affect main branch.
+- **Stash:** `stash@{0}` preserved on `experimental/dreamcraft-introspection` for reference.
+- Untracked files from experimental work (`src/BridgeMod.Generator/`, `src/BridgeMod.SDK/Generated/`, etc.) remain in working tree but are excluded from main branch compilation.
 
-## Quality Metrics (v0.3.0)
+## Quality Metrics (v0.3.0 + Phase 3 Foundation)
 
 | Metric | Value | Status |
 |--------|-------|--------|
 | Build Errors (Release) | 0 | ✅ |
 | Compiler Warnings (Release) | 0 | ✅ |
-| Test Pass Rate | 31/31 (100%) | ✅ |
-| Phase 1 Tests Unchanged | 11/11 | ✅ |
-| Phase 2 Tests Added | 20/20 | ✅ |
+| Test Pass Rate | 46/46 (100%) | ✅ |
+| Phase 1 Tests | 11/11 | ✅ |
+| Phase 2 Tests | 20/20 | ✅ |
+| Phase 3 Foundation Tests | 15/15 | ✅ |
 | Public Members Documented | 100% | ✅ |
 | New Dependencies Introduced | None | ✅ |
 | Runtime Logic Modified | None | ✅ |
+| Breaking Changes | None | ✅ |
 
-## Phase 2 Status: 100% COMPLETE
+## Phase 2 Status: 100% COMPLETE ✅
 
-The governance layer for mod surface declarations is implemented, tested, documented, committed, and pushed.
+Developer Mod Surfaces: governance layer for declarative mod surface declarations. Fully implemented, tested, documented, committed.
+
+## Phase 3 Foundation Status: 100% COMPLETE ✅
+
+Canonical Mod Contract: foundational types for multi-engine support. Design specification drafted. Architecture locked. Implementation deferred.
 
 ## Next Phase
 
-**Phase 3 — Behavior Graph Runtime:**
+**Phase 3 — Behavior Graph Runtime (v0.4.0):**
 - Deterministic graph executor for state machines and ECA rule graphs
 - No scripting — declarative node graphs only
 - Must preserve all Phase 1 + Phase 2 deterministic guarantees
-- Target version: v0.4.0
+- Design specification: `/docs/Phase3_Behavior_Graphs.md`
+- Status: Design complete; implementation pending
 
-## Known Limitations (Intended)
+## Known Limitations (Intentional)
 
-- No scripting support (Phase 3+)
-- No asset replacement pipeline (future phase)
-- No player-facing mod browser (Phase 5)
-- No cloud backend (Phase 5; local-only)
-- `AuditLogger` is in-memory only (file export deferred)
-- Surface status enforcement is host responsibility — SDK does not act on status at runtime
+- ❌ No scripting support (Phase 3+ will provide deterministic graph execution)
+- ❌ No asset replacement pipeline (future phase)
+- ❌ No player-facing mod browser (Phase 5)
+- ❌ No cloud backend (Phase 5; local-first model)
+- ❌ Behavior graphs not yet executed (Phase 3 implementation pending)
+- ⚠️ `AuditLogger` is in-memory only (file export deferred)
+- ⚠️ Surface status enforcement is host responsibility — SDK does not act on status at runtime
+
+## Guarantees (Locked)
+
+- ✅ Deterministic execution — all validation produces identical results
+- ✅ No reflection, dynamic loading, or scripting
+- ✅ Canonical contract authority in SDK (not engines)
+- ✅ Multi-engine compatible via adapter pattern
+- ✅ Forward compatible (additive-only design)
