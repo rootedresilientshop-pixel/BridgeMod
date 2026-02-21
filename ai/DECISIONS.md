@@ -127,12 +127,102 @@ This file documents key architectural and process decisions across all phases.
 
 ---
 
+## Phase 3 Decisions (v0.4.0 — Behavior Graph Runtime)
+
+### Deterministic State Machine Architecture
+
+**Decision:** Implement a minimal, deterministic state machine executor with no scripting, reflection, async, or I/O.
+
+**Architecture:**
+- **BehaviorGraphDefinition** — immutable graph with states and transitions
+- **BehaviorState** — sealed nodes with optional metadata
+- **BehaviorTransition** — sealed edges with optional guard conditions
+- **TransitionGuard** — primitive-type comparison operators (Equals, NotEquals, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual)
+- **BehaviorGraphExecutor** — stateful executor with event dispatch and guard evaluation
+- **BehaviorGraphValidator** — pre-execution validation (duplicates, references, ambiguity)
+
+**Rationale:** Determinism is non-negotiable for console certification. By restricting graphs to primitive types, no reflection, and no dynamic loading, we guarantee that the same input always produces the same output. This enables safe replays, testing, and console ports.
+
+### Guard Operator Design
+
+**Decision:** Support only 6 primitive-type operators. No complex object comparisons, no string interpolation, no expression evaluation.
+
+**Supported Operators:**
+- Equals, NotEquals (all primitives: int, float, bool, string)
+- GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual (numeric only)
+
+**Rationale:** Primitive types and simple comparisons are deterministic. Complex object comparisons require reflection or dynamic dispatch, which breaks reproducibility. If games need complex logic, they can layer it on top of the graph executor.
+
+### No Scripting (Explicit Design Decision)
+
+**Decision:** Behavior graphs are declarative node structures. No C#, Python, Lua, or any other scripting language is supported.
+
+**Rationale:** Scripting requires dynamic code loading, reflection, or unsafe execution. These are unsafe for console certification and break the determinism guarantee. Games need transparent, auditable logic — behavior graphs provide that at the cost of not allowing arbitrary code.
+
+**Implication:** All game logic must be either:
+1. Pure data (JSON configs in Phase 1)
+2. Behavior graphs (Phase 3)
+3. Procedural parameters (Phase 4)
+4. Custom game code (outside BridgeMod scope)
+
+### Pre-Execution Validation
+
+**Decision:** `BehaviorGraphValidator` catches graph errors before execution, not at runtime.
+
+**Validation Rules:**
+- No duplicate state IDs
+- Initial state exists
+- All transition references are valid
+- Guard operators are well-formed
+- No ambiguous transitions (at most one transition per state+event pair)
+
+**Rationale:** Catching errors early prevents runtime failures and makes debugging easier. The host can validate graphs at mod load time and reject invalid mods before they affect gameplay.
+
+### Single-Threaded, Synchronous Execution
+
+**Decision:** Executor transitions are immediate and single-threaded. No async, no threading, no background execution.
+
+**Rationale:** Multiplayer and concurrent execution introduce race conditions and non-determinism. By keeping execution synchronous and single-threaded, we preserve the determinism guarantee and make it easier to understand how graphs behave.
+
+### Immutability of Graph Definitions
+
+**Decision:** `BehaviorGraphDefinition` is sealed and immutable. Graph structure cannot change at runtime.
+
+**Rationale:** Immutable graphs are safe to share across multiple executors and threads. They can be validated once, cached, and reused without fear of mutation.
+
+**Implication:** If a graph needs to evolve, create a new definition and migrate executors to the new version. This is a host responsibility, not an SDK responsibility.
+
+### No Execution Time Limits (Phase 3)
+
+**Decision:** Phase 3 does not enforce execution time limits. Graph execution is synchronous and immediate, so the host can set its own timeout at the dispatch level if needed.
+
+**Rationale:** Time budgets are game-specific. Some games may allow long-running graph traversals; others may need strict microsecond budgets. Phase 3 provides the mechanism; the host controls the policy.
+
+**Future:** Phase 4+ may introduce optional execution constraints for nested graphs or complex procedural systems.
+
+### Forward Compatibility: No Type Removals
+
+**Decision:** Once a type is in the public API, it never changes. New features are additive.
+
+**Rationale:** Engines implement adapters around the BridgeMod contract. If BridgeMod changes the contract, all engines break. By committing to additive-only changes, we guarantee that existing engines continue to work indefinitely.
+
+**Implication:** If we need to change a type, we deprecate it and introduce a new version. Old versions remain supported in parallel.
+
+### No Experimental Behavior Graphs in Main Branch
+
+**Decision:** The `experimental/dreamcraft-introspection` branch contains schema registry tooling (non-canonical reference material). This tooling does not ship on `main` and is explicitly non-authoritative.
+
+**Rationale:** The canonical contract lives in the C# SDK. Experimental tooling is optional, reference material. Keeping it on a separate branch prevents confusion and avoids burdening the main build with non-essential code.
+
+---
+
 ## Unresolved Decisions (For Future Phases)
 
-1. **Phase 3 Behavior Graphs:** Execution model (step-based vs. tick-based)? Time budget per execution? Node type library priority order? Graph authoring format?
-2. **Phase 3 Behavior Graphs:** Will BridgeMod provide the graph executor, or expect games to implement? (Planned: provide executor)
+1. **Phase 3 Nested Graphs:** Should Phase 4 support graphs containing graphs? (Deferred to Phase 4)
+2. **Phase 3 Weighted Transitions:** Should Phase 4 support probabilistic transitions? (Deferred to Phase 4)
 3. **Phase 4 Procedural:** How strict are bounds checking? (Planned: very strict, fail-safe)
-4. **Phase 5 Cloud:** Optional or default? (Planned: optional, local-first)
-5. **Monetization:** When/how to monetize (pending developer feedback)
-6. **Tool Projects:** When/how to implement `ModPackager` and `SchemaValidator` (pending Phase 3+ feature clarity)
-7. **AuditLogger File Export:** Deferred from Phase 2 — when to implement? (Candidate for Phase 3 or standalone patch)
+4. **Phase 4 Seeds:** Should procedural systems support deterministic seeding? (Planned: yes)
+5. **Phase 5 Cloud:** Optional or default? (Planned: optional, local-first)
+6. **Monetization:** When/how to monetize (pending developer feedback)
+7. **Tool Projects:** When/how to implement `ModPackager` and `SchemaValidator` (pending Phase 4+ feature clarity)
+8. **AuditLogger File Export:** Deferred from Phase 2 — when to implement? (Candidate for Phase 4 or standalone patch)

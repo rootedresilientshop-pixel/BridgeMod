@@ -69,26 +69,63 @@
 
 ---
 
-## Active (Phase 3 — Behavior Graph Runtime)
+## ✅ Phase 3: Behavior Graph Runtime — COMPLETE (v0.4.0)
 
-### 🎯 Key Decisions Needed Before Starting
-- [ ] Execution model: step-based vs. tick-based
-- [ ] Time budget per execution (hard limit in microseconds?)
-- [ ] Node type library: decision nodes, state nodes, action nodes — which first?
-- [ ] Graph complexity limits (max depth, max nodes, max edges)
-- [ ] How graphs are authored (declarative JSON/XML? custom format?)
+### ✅ Core Types Implemented
+- [x] `BehaviorGraphDefinition` — sealed, immutable graph structure (states, transitions, initial state)
+- [x] `BehaviorState` — sealed immutable state nodes with optional display name and metadata
+- [x] `BehaviorTransition` — sealed transitions with optional guard conditions
+- [x] `TransitionGuard` — guard operators: Equals, NotEquals, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual
+- [x] `BehaviorGraphValidator` — pre-execution validation (no duplicates, valid references, no ambiguous transitions)
+- [x] `BehaviorGraphExecutor` — deterministic state machine with guard evaluation and event dispatch
+- [x] `GuardOperator` — enum with 6 deterministic operators for primitive type comparison
 
-### 📋 Implementation Tasks (Pending Decisions)
-- [ ] Design deterministic graph executor spec
-- [ ] Implement core graph traversal engine
-- [ ] Add time limit enforcement per graph execution
-- [ ] Add depth limit enforcement
-- [ ] Add debug logging and profiling hooks
-- [ ] Create state machine validation
-- [ ] Write 20+ tests for graph execution
-- [ ] Document graph format and limitations
-- [ ] Verify all Phase 1 + Phase 2 tests still pass
-- [ ] Create v0.4.0 release
+### ✅ Determinism Guarantees Implemented
+- [x] Same input → Same output, always (no randomness, reflection, async, or I/O)
+- [x] Single-threaded, synchronous state transitions
+- [x] Guard operators support only primitives (int, float, bool, string)
+- [x] Pre-execution validation catches errors before runtime
+- [x] 1000-iteration determinism proof test verifies identical output from identical input
+
+### ✅ Tests (34 new tests)
+- [x] `tests/ModBehaviorGraphTests.cs` — 34 tests covering:
+  - State creation and validation
+  - Transition creation and validation
+  - Guard creation with all 6 operators
+  - Guard evaluation with primitive types
+  - Graph definition validation
+  - Validator tests (duplicates, references, ambiguity)
+  - Executor initialization and transitions
+  - No-match behavior (executor stays in place)
+  - Guard condition failure handling
+  - Determinism proof (1000 iterations with identical results)
+
+### ✅ Documentation
+- [x] README.md — Phase 3 section: core concepts, determinism guarantee, guard operators table, enemy AI example, integration guidance
+- [x] `docs/Phase3_Runtime.md` — full architectural specification (6600+ words)
+  - Architecture diagram
+  - Core types and contracts
+  - Determinism guarantees and proof
+  - Guard operators reference
+  - Integration examples (enemy AI, dialogue trees)
+  - JSON representation format
+  - Forward compatibility strategy
+  - Limitations (intentional: no scripting, no reflection, no async)
+
+### ✅ Release
+- [x] SDK version bumped to 0.4.0 in `BridgeMod.SDK.csproj`
+- [x] Commits `fd88330` (Phase 3 implementation) + `3f3cc1d` (version bump) on main
+- [x] Tag `v0.4.0` pushed to GitHub origin
+- [x] Published to NuGet.org (live)
+- [x] 80/80 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime)
+- [x] 0 build warnings in Release configuration
+- [x] STATE.md updated with Phase 3 completion
+
+### ✅ Compatibility Verified
+- [x] No existing public APIs modified
+- [x] No Phase 1 or Phase 2 behavior changed
+- [x] All 80 tests passing (comprehensive regression)
+- [x] Purely additive — safe to merge forward into Phase 4
 
 ---
 
@@ -100,9 +137,9 @@
 - [ ] Respond to documentation issues in GitHub
 
 ### 🧪 Test Coverage
-- [ ] Maintain 31+ tests passing
-- [ ] Add tests for Phase 3, 4, 5 features as they're implemented
-- [ ] Verify zero warnings in Release builds
+- [x] Maintain 80/80 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime)
+- [ ] Add tests for Phase 4, 5 features as they're implemented
+- [x] Verify zero warnings in Release builds
 
 ### 📊 Community Engagement
 - [ ] Monitor GitHub Discussions
@@ -112,12 +149,23 @@
 
 ---
 
-## Planned: Phase 4 (Procedural Control)
+## Planned: Phase 4 (Procedural Control Layer) — v0.5.0
 
+### Scope
 - [ ] Design parameter validation schema for procedural inputs
-- [ ] Implement seed validation
-- [ ] Add generation bounds checking
-- [ ] Create v0.5.0 release
+- [ ] Implement seed validation and generation parameter bounds
+- [ ] ProceduralInputs surface category runtime execution
+- [ ] Guard conditions for procedural systems
+- [ ] Pre-execution validation for procedural graphs
+- [ ] 20+ tests for procedural executor
+- [ ] Full documentation with examples
+
+### Quality Gates
+- [ ] 100+ total tests passing
+- [ ] 0 build warnings
+- [ ] All Phase 1-3 tests still passing (no regressions)
+- [ ] 100% public API documented
+- [ ] Determinism guarantee preserved
 
 ---
 
@@ -151,11 +199,13 @@
 
 ---
 
-## Success Criteria (v0.3.0) — ALL MET
+## Success Criteria (v0.4.0) — ALL MET
 
-- ✅ Zero build errors, zero compiler warnings
-- ✅ 31/31 tests passing
+- ✅ Zero build errors, zero compiler warnings (Release)
+- ✅ 80/80 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime)
 - ✅ All public members documented
-- ✅ Commit and tag pushed to main
+- ✅ Commits `fd88330` + `3f3cc1d` pushed to main; tag `v0.4.0` pushed to origin
+- ✅ Published to NuGet.org (live)
 - ✅ No existing runtime behavior changed
-- ✅ Phase 3 merge safety verified
+- ✅ Determinism guarantee proven and tested (1000-iteration proof)
+- ✅ Phase 4 merge safety verified
