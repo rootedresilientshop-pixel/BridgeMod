@@ -129,6 +129,38 @@
 
 ---
 
+## ✅ AuditLogger File Export + Stuck State Detector — COMPLETE (v0.4.1)
+
+### ✅ Core Changes
+- [x] Add `Newtonsoft.Json 13.0.3` to `BridgeMod.SDK.csproj`
+- [x] Add `WarnStuck001 = "WARN_STUCK_001"` to `ErrorCodes` in `BridgeMod.Bridge.cs`
+- [x] Add thread-safety lock (`_lock` object) to `AuditLogger.Log`, `HasCode`, and new `FlushToDisk`
+- [x] Implement `AuditLogger.FlushToDisk(string path)` — snapshot under lock, JSON array via Newtonsoft.Json, no-throw
+- [x] Add optional `AuditLogger? auditLogger = null` parameter to `BehaviorGraphExecutor` constructor
+- [x] Log `WarnStuck001` in `Dispatch` when no transition matches (backward compatible)
+
+### ✅ Tests (5 new tests in `tests/AuditLoggerTests.cs`)
+- [x] `FlushToDisk_WritesJsonFile_ContainingAllEntries`
+- [x] `FlushToDisk_IsNoThrow_WhenPathIsInvalid`
+- [x] `FlushToDisk_ProducesEmptyArray_WhenNoEntriesLogged`
+- [x] `StuckState_LogsWarnStuck001_WhenNoTransitionMatches`
+- [x] `StuckState_DoesNotLog_WhenTransitionSucceeds`
+
+### ✅ Documentation
+- [x] README.md — Fixed 3 Phase 3 API inaccuracies (Validate return type, Initialize() removal, Dispatch void return)
+- [x] README.md — Added Premium Studio Tools section
+- [x] `ai/STATE.md` — Removed AuditLogger in-memory warning, added completion note, bumped to v0.4.1
+- [x] `ai/TASKS.md` — Added this task section
+
+### ✅ Release
+- [x] SDK version bumped to 0.4.1 in `BridgeMod.SDK.csproj`
+- [x] 85/85 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime + 5 AuditLogger/StuckState)
+- [x] 0 build warnings in Release configuration
+- [x] All Phase 1–3 tests still passing (no regressions)
+- [x] Backward compatible: existing `BehaviorGraphExecutor(definition)` callers unaffected
+
+---
+
 ## Ongoing (All Phases)
 
 ### 📚 Documentation Maintenance
@@ -137,7 +169,7 @@
 - [ ] Respond to documentation issues in GitHub
 
 ### 🧪 Test Coverage
-- [x] Maintain 80/80 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime)
+- [x] Maintain 85/85 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime + 5 AuditLogger/StuckState)
 - [ ] Add tests for Phase 4, 5 features as they're implemented
 - [x] Verify zero warnings in Release builds
 
@@ -209,3 +241,14 @@
 - ✅ No existing runtime behavior changed
 - ✅ Determinism guarantee proven and tested (1000-iteration proof)
 - ✅ Phase 4 merge safety verified
+
+## Success Criteria (v0.4.1) — ALL MET
+
+- ✅ Zero build errors, zero compiler warnings (Release)
+- ✅ 85/85 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime + 5 AuditLogger/StuckState)
+- ✅ All public members documented
+- ✅ No existing runtime behavior changed
+- ✅ Backward compatible: all 80 pre-existing tests pass unmodified
+- ✅ No-throw guarantee on FlushToDisk verified by test
+- ✅ Thread-safe lock pattern applied to AuditLogger
+- ✅ Premium Studio Tools section added to README.md with MIT license clarification

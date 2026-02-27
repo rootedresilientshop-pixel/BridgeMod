@@ -11,7 +11,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>BridgeMod.SDK</PackageId>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <Authors>DreamCraft: Legacies Project</Authors>
     <Company>DreamCraft</Company>
     <Product>BridgeMod.SDK</Product>
@@ -20,7 +20,25 @@
       Provides a three-gate validation firewall (Deserialize, Boundary Guards, Audit Logger)
       that sanitizes untrusted mod payloads before they reach the trusted console runtime.
     </Description>
-    <PackageTags>console;modding;security;bridge;validation;unity;gamedev;sdk</PackageTags>
+    <PackageTags>audit-log;behavior-tree;bridge;console;console-ready;deterministic;dotnet;gamedev;middleware;modding;sdk;security;state-machine;unity;validation</PackageTags>
+    <PackageReleaseNotes>
+      v0.4.1 — Observability Update
+
+      New Features:
+      • AuditLogger.FlushToDisk(path) — Thread-safe JSON file persistence for audit logs with no-throw guarantee
+      • Stuck State Detector — BehaviorGraphExecutor now logs WARN_STUCK_001 when no transitions match an event
+      • Premium Studio Tools Announcement — SchemaValidator CLI and ModPackager in development
+
+      Improvements:
+      • Thread-safe audit logging via lock pattern
+      • Phase 3 API documentation fixes (Validate, Initialize, Dispatch accuracy)
+      • Backward compatible: all 80 pre-existing tests pass unmodified
+
+      Quality:
+      • 85/85 tests passing (80 existing + 5 new observability tests)
+      • 0 compiler warnings in Release configuration
+      • Full determinism guarantee maintained
+    </PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/rootedresilientshop-pixel/BridgeMod</RepositoryUrl>
@@ -35,6 +53,11 @@
     <!-- Include README in the NuGet package (displayed on NuGet.org) -->
     <!-- README.md lives alongside this .csproj at src/BridgeMod.SDK/ -->
     <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- JSON serialization for audit log file export -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>

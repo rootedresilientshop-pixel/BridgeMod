@@ -8,7 +8,7 @@ Build your mod system once. It works on PC, ports to console, and never needs re
 
 [![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
 
-### 🚀 Status: v0.4.0 Live
+### 🚀 Status: v0.4.1 Live
 **Milestone:** Phase 3 (Behavior Graph Runtime) — **Complete** ✅
 **Previous:** Phase 2 (Developer Mod Surfaces) — **Complete** ✅
 **Previous:** Phase 1 (Security Foundation) — **Complete** ✅
@@ -183,6 +183,17 @@ var mod = loader.LoadMod("my_mod.zip");
 | [Roadmap & Execution Plan](docs/internal/console_modding_execution_plan.md) | Full roadmap (Phases 1-5) |
 | [Implementation Status](docs/internal/IMPLEMENTATION_STATUS.md) | Project status and architecture |
 
+## Studio Tools (In Development)
+
+The BridgeMod SDK is **MIT-licensed and free for all studios and developers**. In addition to the open SDK, DreamCraft is developing a suite of **Premium Studio Tools** designed for professional mod certification workflows:
+
+| Tool | Status | Description |
+|------|--------|-------------|
+| **SchemaValidator CLI** | In Development | Validates mod schemas against declared surfaces in batch |
+| **ModPackager** | In Development | Packages, signs, and prepares mods for console certification |
+
+These tools are not part of the open-source SDK release. Follow the repository for announcements.
+
 ## Contributing
 
 We welcome contributions. Before you start:
@@ -330,20 +341,18 @@ var graph = new BehaviorGraphDefinition(
 
 **BehaviorGraphValidator** — Pre-execution validation:
 ```csharp
-var errors = BehaviorGraphValidator.Validate(graph);
-if (errors.Any())
-    throw new InvalidOperationException($"Graph has errors: {string.Join(", ", errors)}");
+// Throws ArgumentException if the graph is invalid (duplicate states, bad references, etc.)
+BehaviorGraphValidator.Validate(graph);
 ```
 
 **BehaviorGraphExecutor** — Deterministic state transitions:
 ```csharp
 var executor = new BehaviorGraphExecutor(graph);
-executor.Initialize();
 
 // Dispatch events with context
 var context = new Dictionary<string, object> { { "distance", 3.5f } };
-var result = executor.Dispatch("player_nearby", context);
-// Result: executor.CurrentStateId == "combat" (guard condition passed)
+executor.Dispatch("player_nearby", context);
+// After dispatch: executor.CurrentStateId == "combat" (guard condition passed)
 ```
 
 ### Determinism Guarantee
@@ -418,13 +427,11 @@ var enemyAI = new BehaviorGraphDefinition(
 );
 
 // Validate the graph (catches errors before runtime)
-var errors = BehaviorGraphValidator.Validate(enemyAI);
-if (errors.Any())
-    throw new InvalidOperationException("Graph validation failed");
+// Throws ArgumentException if the graph is invalid
+BehaviorGraphValidator.Validate(enemyAI);
 
 // Create executor and run
 var executor = new BehaviorGraphExecutor(enemyAI);
-executor.Initialize();
 
 // Game loop: dispatch events with context
 while (gameRunning)

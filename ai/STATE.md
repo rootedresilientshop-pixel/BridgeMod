@@ -4,7 +4,7 @@
 
 - **Branch:** main
 - **Git Status:** Clean (Phase 3 Runtime committed locally; awaiting push to GitHub)
-- **Current Version:** v0.4.0 (Stable locally)
+- **Current Version:** v0.4.1 (Stable locally)
 - **Release Status:** ✅ v0.4.0 tagged locally; awaiting push and NuGet publication
 - **Latest Commit:** `fd88330` — "Phase 3: Deterministic Behavior Graph Runtime introduced"
 - **Previous:** `ca394f8` — "docs(ai): Update STATE.md with Phase 3 foundation completion"
@@ -13,7 +13,7 @@
 
 ### Current State
 - ✅ `dotnet build` → **0 errors, 0 warnings** (Release)
-- ✅ `dotnet test` → **80/80 tests passing** (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime)
+- ✅ `dotnet test` → **85/85 tests passing** (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime + 5 AuditLogger/StuckState)
 - ✅ No new dependencies introduced
 
 ### Framework
@@ -120,11 +120,12 @@ Foundational types for multi-engine support:
 |--------|-------|--------|
 | Build Errors (Release) | 0 | ✅ |
 | Compiler Warnings (Release) | 0 | ✅ |
-| Test Pass Rate | 80/80 (100%) | ✅ |
+| Test Pass Rate | 85/85 (100%) | ✅ |
 | Phase 1 Tests | 11/11 | ✅ |
 | Phase 2 Tests | 20/20 | ✅ |
 | Phase 3 Foundation Tests | 15/15 | ✅ |
 | Phase 3 Runtime Tests | 34/34 | ✅ |
+| AuditLogger + StuckState Tests | 5/5 | ✅ |
 | Public Members Documented | 100% | ✅ |
 | New Dependencies Introduced | None | ✅ |
 | Runtime Logic Modified | None | ✅ |
@@ -165,7 +166,7 @@ Key features:
 - ❌ No player-facing mod browser (Phase 5)
 - ❌ No cloud backend (Phase 5; local-first model)
 - ❌ Behavior graphs not yet executed (Phase 3 implementation pending)
-- ⚠️ `AuditLogger` is in-memory only (file export deferred)
+- ✅ `AuditLogger.FlushToDisk(path)` — thread-safe JSON file export (v0.4.1)
 - ⚠️ Surface status enforcement is host responsibility — SDK does not act on status at runtime
 
 ## Guarantees (Locked)

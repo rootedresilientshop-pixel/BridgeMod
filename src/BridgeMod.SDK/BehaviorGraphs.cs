@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BridgeMod.Bridge;
 
 namespace BridgeMod.Bridge.BehaviorGraphs
 {
@@ -358,6 +359,7 @@ namespace BridgeMod.Bridge.BehaviorGraphs
     public sealed class BehaviorGraphExecutor
     {
         private readonly BehaviorGraphDefinition _definition;
+        private readonly AuditLogger? _auditLogger;
         private string _currentStateId;
 
         /// <summary>
@@ -373,7 +375,12 @@ namespace BridgeMod.Bridge.BehaviorGraphs
         /// The executor is not reusable; create a new instance for each execution.
         /// </summary>
         /// <param name="definition">The graph definition. Must be valid.</param>
-        public BehaviorGraphExecutor(BehaviorGraphDefinition definition)
+        /// <param name="auditLogger">
+        /// Optional audit logger. When provided, stuck-state events (no matching
+        /// transition) are logged with <see cref="ErrorCodes.WarnStuck001"/>.
+        /// Defaults to <c>null</c> for backward compatibility.
+        /// </param>
+        public BehaviorGraphExecutor(BehaviorGraphDefinition definition, AuditLogger? auditLogger = null)
         {
             if (definition == null)
                 throw new ArgumentNullException(nameof(definition));
@@ -382,6 +389,7 @@ namespace BridgeMod.Bridge.BehaviorGraphs
 
             _definition = definition;
             _currentStateId = definition.InitialStateId;
+            _auditLogger = auditLogger;
         }
 
         /// <summary>
@@ -430,6 +438,10 @@ namespace BridgeMod.Bridge.BehaviorGraphs
             }
 
             // No matching transition: remain in current state
+            _auditLogger?.Log(
+                ErrorCodes.WarnStuck001,
+                _definition.GraphId,
+                $"No transition matched event '{eventName}' from state '{_currentStateId}'");
         }
 
         /// <summary>

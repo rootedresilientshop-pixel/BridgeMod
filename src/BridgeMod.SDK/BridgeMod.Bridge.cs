@@ -23,7 +23,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 namespace BridgeMod.Bridge
 {
@@ -49,6 +51,12 @@ namespace BridgeMod.Bridge
         /// The payload is still accepted, but with the corrected value.
         /// </summary>
         public const string BoundClamp003 = "BOUND_CLAMP_003";
+
+        /// <summary>
+        /// A BehaviorGraph received an event but no guarded transitions matched.
+        /// Informational — not a rejection.
+        /// </summary>
+        public const string WarnStuck001 = "WARN_STUCK_001";
     }
 
     // -------------------------------------------------------------------------
@@ -117,6 +125,7 @@ namespace BridgeMod.Bridge
     public class AuditLogger
     {
         private readonly BridgeConfig _config;
+        private readonly object _lock = new object();
 
         /// <summary>All log entries written during this session, in order.</summary>
         public List<string> Entries { get; } = new();
@@ -137,13 +146,45 @@ namespace BridgeMod.Bridge
             var timestamp = DateTimeOffset.UtcNow.ToString("o");
             var entry = $"[{timestamp}] [{eventCode}] payload={payloadId} :: {detail}";
 
-            Entries.Add(entry);
+            lock (_lock)
+            {
+                Entries.Add(entry);
+            }
             Console.Error.WriteLine($"  AUDIT | {entry}");
         }
 
         /// <summary>Returns <c>true</c> if any entry in <see cref="Entries"/> contains the given event code.</summary>
-        public bool HasCode(string eventCode) =>
-            Entries.Exists(e => e.Contains($"[{eventCode}]"));
+        public bool HasCode(string eventCode)
+        {
+            lock (_lock)
+            {
+                return Entries.Exists(e => e.Contains($"[{eventCode}]"));
+            }
+        }
+
+        /// <summary>
+        /// Serializes all current audit entries to a JSON array and writes to the specified file path.
+        /// This method is no-throw: any I/O or serialization error is silently swallowed.
+        /// </summary>
+        /// <param name="path">Absolute or relative path to the output file.</param>
+        public void FlushToDisk(string path)
+        {
+            List<string> snapshot;
+            lock (_lock)
+            {
+                snapshot = new List<string>(Entries);
+            }
+
+            try
+            {
+                var json = JsonConvert.SerializeObject(snapshot, Formatting.Indented);
+                File.WriteAllText(path, json);
+            }
+            catch
+            {
+                // No-throw guarantee: I/O and serialization errors are silently swallowed.
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
