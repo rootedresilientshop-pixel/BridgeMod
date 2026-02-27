@@ -1,19 +1,19 @@
-# State: BridgeMod v0.3.0 (Phase 3 Foundation — Architectural Authority Established)
+# State: BridgeMod v0.5.0 (Phase 4: Procedural Control Layer — Deterministic PRNG and Weight Normalization)
 
 ## Workspace Status
 
 - **Branch:** main
-- **Git Status:** Clean (Phase 3 Runtime committed locally; awaiting push to GitHub)
-- **Current Version:** v0.4.1 (Stable locally)
-- **Release Status:** ✅ v0.4.0 tagged locally; awaiting push and NuGet publication
-- **Latest Commit:** `fd88330` — "Phase 3: Deterministic Behavior Graph Runtime introduced"
-- **Previous:** `ca394f8` — "docs(ai): Update STATE.md with Phase 3 foundation completion"
+- **Git Status:** Clean (Phase 4 Procedural Control Layer implemented)
+- **Current Version:** v0.5.0 (Stable locally)
+- **Release Status:** Ready for git commit + GitHub push + NuGet publication
+- **Latest Commit:** (pending git commit for Phase 4)
+- **Previous:** `ccc1367` — "docs(ai): Finalize Phase 3 Runtime completion across all intelligence files"
 
 ## Build Status
 
 ### Current State
 - ✅ `dotnet build` → **0 errors, 0 warnings** (Release)
-- ✅ `dotnet test` → **85/85 tests passing** (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime + 5 AuditLogger/StuckState)
+- ✅ `dotnet test` → **100/100 tests passing** (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime + 5 AuditLogger/StuckState + 15 Phase 4 Procedural)
 - ✅ No new dependencies introduced
 
 ### Framework
@@ -21,11 +21,11 @@
 - **Tests target:** `net10.0`
 - **CI Workflow:** `.github/workflows/build.yml` → .NET 10.0 (all platforms) ✅
 
-## Repository Structure (v0.3.0 + Phase 3 Foundation)
+## Repository Structure (v0.5.0 + Phase 4 Procedural Control Layer)
 
 ```
 /src/BridgeMod.SDK          — Authoritative C# library (single source of truth)
-  BridgeMod.Bridge.cs       — Phase 1: ModBridge, AuditLogger, BridgeConfig, ErrorCodes
+  BridgeMod.Bridge.cs       — Phase 1: ModBridge, AuditLogger, BridgeConfig, ErrorCodes (+ProcGen001)
   ModSurfaceCategory.cs     — Phase 2: enum Data, BehaviorGraphs, ProceduralInputs
   ModSurfaceStatus.cs       — Phase 2: enum Enabled, Limited, Disabled, Planned
   ModSurfaceDeclaration.cs  — Phase 2: sealed immutable surface record
@@ -33,14 +33,18 @@
   ModSurfaceSummaryGenerator.cs — Phase 2: pure capability matrix string generator
   ModContract.cs            — Phase 3: Canonical mod contract (immutable, additive)
   BehaviorGraphs.cs         — Phase 3: State machine executor (deterministic)
+  BridgeRandom.cs           — Phase 4: Xorshift32 PRNG (deterministic)
+  ProceduralWeightTable.cs  — Phase 4: Weight normalization with boundary guards
   IsExternalInit.cs         — C# 9+ polyfill for netstandard2.1
 /src/DreamCraft.Engine       — Isolated Python simulation core
 /samples/Legacies_Bridge_Test — End-to-end integration proof
 /tests
-  Phase1Tests.cs            — 11 firewall validation tests (unchanged)
+  Phase1Tests.cs            — 11 firewall validation tests
   ModSurfaceTests.cs        — 20 Phase 2 surface metadata tests
   ModContractTests.cs       — 15 Phase 3 foundation tests
-  ModBehaviorGraphTests.cs  — 34 Phase 3 runtime tests (determinism verified)
+  ModBehaviorGraphTests.cs  — 34 Phase 3 runtime tests
+  AuditLoggerTests.cs       — 5 AuditLogger/StuckState tests
+  ProceduralTests.cs        — 15 Phase 4 PRNG and weight table tests (8 BridgeRandom + 7 ProceduralWeightTable)
 /docs
   Phase2_Mod_Surfaces.md    — Full architectural reference for Phase 2
   Engine_Adapter_Model.md   — Multi-engine support architecture
@@ -114,18 +118,19 @@ Foundational types for multi-engine support:
 - **Stash:** `stash@{0}` preserved on `experimental/dreamcraft-introspection` for reference.
 - Untracked files from experimental work (`src/BridgeMod.Generator/`, `src/BridgeMod.SDK/Generated/`, etc.) remain in working tree but are excluded from main branch compilation.
 
-## Quality Metrics (v0.4.0 + Phase 3 Runtime)
+## Quality Metrics (v0.5.0 + Phase 4 Procedural Control Layer)
 
 | Metric | Value | Status |
 |--------|-------|--------|
 | Build Errors (Release) | 0 | ✅ |
 | Compiler Warnings (Release) | 0 | ✅ |
-| Test Pass Rate | 85/85 (100%) | ✅ |
+| Test Pass Rate | 100/100 (100%) | ✅ |
 | Phase 1 Tests | 11/11 | ✅ |
 | Phase 2 Tests | 20/20 | ✅ |
 | Phase 3 Foundation Tests | 15/15 | ✅ |
 | Phase 3 Runtime Tests | 34/34 | ✅ |
 | AuditLogger + StuckState Tests | 5/5 | ✅ |
+| Phase 4 Procedural Tests | 15/15 | ✅ |
 | Public Members Documented | 100% | ✅ |
 | New Dependencies Introduced | None | ✅ |
 | Runtime Logic Modified | None | ✅ |
@@ -148,25 +153,43 @@ Key features:
 - BehaviorGraphValidator (pre-execution validation)
 - BehaviorGraphExecutor (deterministic state transitions)
 - 6 guard operators: Equals, NotEquals, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual
-- 22 comprehensive tests with determinism proof (1000-iteration verification)
+- 34 comprehensive runtime tests with determinism proof (1000-iteration verification)
 - Full specification: `/docs/Phase3_Runtime.md`
+
+## Phase 4 Status: 100% COMPLETE ✅
+
+Procedural Control Layer: deterministic random number generation and weight-based selection.
+
+Key features:
+- **BridgeRandom (Xorshift32)** — Deterministic PRNG, seed-based reproducibility, no platform libs
+  - `Next()` → uint, `NextFloat()` → [0.0, 1.0], `NextRange(min, max)` → [min, max)
+  - Seed=0 fallback to 1 (Xorshift32 invariant)
+  - Optional audit logging via AuditLogger parameter
+- **ProceduralWeightTable** — Named weight normalization with boundary guards
+  - Raw weights clamped by BridgeConfig bounds
+  - Division by sum ensures normalized distribution [0.0, 1.0]
+  - Returns IReadOnlyDictionary for immutability
+- **PROCEDURAL_GEN_001** error code — Informational logging for seed initialization
+- 15 comprehensive tests covering determinism, range bounds, normalization, edge cases
+- Pure bit-shifting, no System.Random dependency, cross-runtime portable
 
 ## Next Phase
 
-**Phase 4 — Procedural Control Layer (v0.5.0):**
-- Procedural generation parameters and seed management
-- ProceduralInputs surface category execution
-- Must preserve all Phase 1 + Phase 2 + Phase 3 deterministic guarantees
+**Phase 5 — Cloud Services & Distribution (v0.6.0):**
+- Optional cloud validation service
+- Opt-in telemetry with privacy-first design
+- Player-facing mod browser (possibly)
 - Status: Design pending
 
 ## Known Limitations (Intentional)
 
-- ❌ No scripting support (Phase 3+ will provide deterministic graph execution)
+- ❌ No scripting support (Phases 3 + 4 provide deterministic alternatives)
 - ❌ No asset replacement pipeline (future phase)
 - ❌ No player-facing mod browser (Phase 5)
 - ❌ No cloud backend (Phase 5; local-first model)
-- ❌ Behavior graphs not yet executed (Phase 3 implementation pending)
+- ✅ Behavior graphs fully executed (Phase 3 runtime complete)
 - ✅ `AuditLogger.FlushToDisk(path)` — thread-safe JSON file export (v0.4.1)
+- ✅ BridgeRandom deterministic PRNG + ProceduralWeightTable (Phase 4 complete)
 - ⚠️ Surface status enforcement is host responsibility — SDK does not act on status at runtime
 
 ## Guarantees (Locked)

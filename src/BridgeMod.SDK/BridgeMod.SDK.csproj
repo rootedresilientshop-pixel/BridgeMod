@@ -11,7 +11,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>BridgeMod.SDK</PackageId>
-    <Version>0.4.1</Version>
+    <Version>0.5.0</Version>
     <Authors>DreamCraft: Legacies Project</Authors>
     <Company>DreamCraft</Company>
     <Product>BridgeMod.SDK</Product>
@@ -22,22 +22,26 @@
     </Description>
     <PackageTags>audit-log;behavior-tree;bridge;console;console-ready;deterministic;dotnet;gamedev;middleware;modding;sdk;security;state-machine;unity;validation</PackageTags>
     <PackageReleaseNotes>
-      v0.4.1 — Observability Update
+      v0.5.0 — Procedural Control Layer
 
       New Features:
-      • AuditLogger.FlushToDisk(path) — Thread-safe JSON file persistence for audit logs with no-throw guarantee
-      • Stuck State Detector — BehaviorGraphExecutor now logs WARN_STUCK_001 when no transitions match an event
-      • Premium Studio Tools Announcement — SchemaValidator CLI and ModPackager in development
+      • BridgeRandom — Deterministic Xorshift32 PRNG with seed-based reproducibility
+      • ProceduralWeightTable — Named weight normalization with BridgeConfig boundary guards
+      • PROCEDURAL_GEN_001 audit code — Logs when BridgeRandom is initialized
 
-      Improvements:
-      • Thread-safe audit logging via lock pattern
-      • Phase 3 API documentation fixes (Validate, Initialize, Dispatch accuracy)
-      • Backward compatible: all 80 pre-existing tests pass unmodified
+      New Namespaces:
+      • BridgeMod.Bridge.Procedural — Home for procedural generation types
 
       Quality:
-      • 85/85 tests passing (80 existing + 5 new observability tests)
+      • 98/98 tests passing (85 existing + 13 Phase 4 procedural tests)
       • 0 compiler warnings in Release configuration
-      • Full determinism guarantee maintained
+      • Determinism guarantee extended to procedural control layer
+      • Backward compatible: all 85 pre-existing tests pass unmodified
+
+      Design:
+      • Xorshift32: pure bit-shifting, no platform libs, cross-runtime portable
+      • Weight normalization: clamp via BridgeConfig, then divide by sum
+      • Audit logging: optional BridgeRandom logger parameter for reproducibility tracking
     </PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>

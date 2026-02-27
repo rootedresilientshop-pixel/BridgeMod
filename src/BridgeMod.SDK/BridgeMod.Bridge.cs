@@ -57,6 +57,12 @@ namespace BridgeMod.Bridge
         /// Informational — not a rejection.
         /// </summary>
         public const string WarnStuck001 = "WARN_STUCK_001";
+
+        /// <summary>
+        /// A BridgeRandom instance was initialized with an explicit seed.
+        /// Informational — enables reproducibility auditing.
+        /// </summary>
+        public const string ProcGen001 = "PROCEDURAL_GEN_001";
     }
 
     // -------------------------------------------------------------------------
