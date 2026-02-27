@@ -3,10 +3,11 @@
 ## Workspace Status
 
 - **Branch:** main
-- **Git Status:** Clean (Phase 4 Procedural Control Layer implemented)
-- **Current Version:** v0.5.0 (Stable locally)
-- **Release Status:** Ready for git commit + GitHub push + NuGet publication
-- **Latest Commit:** (pending git commit for Phase 4)
+- **Git Status:** Clean (Phase 4 Procedural Control Layer committed and pushed)
+- **Current Version:** v0.5.0 (Stable locally and on GitHub)
+- **Release Status:** ✅ Committed to main + Tagged v0.5.0 + Pushed to GitHub | ⏳ Awaiting NuGet publication
+- **Latest Commit:** `2401a4d` — "feat(v0.5.0): Phase 4 Procedural Control Layer"
+- **Latest Tag:** `v0.5.0` (pushed to origin)
 - **Previous:** `ccc1367` — "docs(ai): Finalize Phase 3 Runtime completion across all intelligence files"
 
 ## Build Status
