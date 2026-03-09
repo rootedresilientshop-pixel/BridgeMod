@@ -8,11 +8,13 @@ Build your mod system once. It works on PC, ports to console, and never needs re
 
 [![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
 
-### 🚀 Status: v0.4.1 Live
-**Milestone:** Phase 3 (Behavior Graph Runtime) — **Complete** ✅
+### 🚀 Status: v0.5.0 Live
+**Milestone:** Phase 4 (Procedural Control Layer) — **Complete** ✅
+**Previous:** Phase 3 (Behavior Graph Runtime) — **Complete** ✅
 **Previous:** Phase 2 (Developer Mod Surfaces) — **Complete** ✅
 **Previous:** Phase 1 (Security Foundation) — **Complete** ✅
-**Latest News:** [Phase 3 — Deterministic Behavior Graph Runtime (Feb 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
+**Test Coverage:** 100/100 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime + 5 AuditLogger + 15 Phase 4) ✅
+**Latest News:** [Phase 4 — Procedural Control Layer: Xorshift32 PRNG & Weight Normalization (Mar 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
 ## Why BridgeMod Exists
 
 We believe:
@@ -163,6 +165,8 @@ var mod = loader.LoadMod("my_mod.zip");
 
 **→ [Full Quickstart Guide](QUICKSTART.md)**
 
+**Questions?** Join [GitHub Discussions](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions) to share your use case and get help from the community.
+
 ### For Modders
 
 1. Check what surfaces your favorite game supports (auto-generated `MOD_SURFACES.md`)
@@ -180,8 +184,10 @@ var mod = loader.LoadMod("my_mod.zip");
 | [README_DEVELOPMENT.md](README_DEVELOPMENT.md) | Full API reference and implementation details |
 | [CONSTITUTION.md](CONSTITUTION.md) | Our governing principles—the "why" behind everything |
 | [MOD_SCHEMA.md](MOD_SCHEMA.md) | Mod package format specification |
+| [FEEDBACK.md](FEEDBACK.md) | Roadmap, community requests, and how to help |
 | [Roadmap & Execution Plan](docs/internal/console_modding_execution_plan.md) | Full roadmap (Phases 1-5) |
 | [Implementation Status](docs/internal/IMPLEMENTATION_STATUS.md) | Project status and architecture |
+| [Documentation Index](docs/README.md) | Complete guide to all architecture docs |
 
 ## Studio Tools (In Development)
 
@@ -468,12 +474,36 @@ See [docs/Phase3_Runtime.md](docs/Phase3_Runtime.md) for the full architectural 
 
 ---
 
-## What's Next (Phase 4+)
+## Phase 4 — Procedural Control Layer
+
+**Status: Complete ✅**
+
+Phase 4 introduces deterministic procedural generation for mods:
+
+### Core Features
+
+✅ **BridgeRandom** - Xorshift32 PRNG (deterministic, seed-based, no platform dependencies)
+- Reproducible sequences: same seed → identical output
+- `Next()` for unsigned integers, `NextFloat()` for [0.0, 1.0], `NextRange(min, max)` for bounded ranges
+- Pure bit-shifting—zero external dependencies
+
+✅ **ProceduralWeightTable** - Weight normalization with boundary guards
+- Named weight distribution (e.g., `{"rare": 10, "common": 100}`)
+- Automatic clamping via BridgeConfig bounds
+- Normalized output always sums to 1.0
+
+✅ **Determinism Guarantee** - Procedural systems now pass the 3-gate firewall
+- Seed initialization logged via audit trail (PROCEDURAL_GEN_001)
+- All generation is reproducible for testing and console certification
+
+See [docs/Phase4_Procedural.md](docs/Phase4_Procedural.md) for full specification.
+
+## What's Next (Phase 5+)
 
 From our [roadmap](docs/internal/console_modding_execution_plan.md):
 
-- **Phase 4:** Procedural control layer
 - **Phase 5:** Optional cloud validation services
+- **Phase 6+:** Asset pipelines and player-facing mod browser
 
 We're building toward a world where a game's mod system survives the port from PC to console without a rewrite. Phase by phase, stability over speed.
 
