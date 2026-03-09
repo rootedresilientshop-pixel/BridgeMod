@@ -1,13 +1,11 @@
-# Funding options for BridgeMod
-# Support the project and our vision to bridge the gap between developers and modders
+# BridgeMod Funding & Sponsorship
+# Support cross-platform, deterministic modding: from independent developers to enterprise studios.
 
-github: []
-patreon: []
-open_collective: []
-ko_fi: []
-tidelift: []
-community_bridge: []
-liberapay: []
-issuehunt: []
-otechie: []
-custom: []
+# Primary: GitHub Sponsors (recommended)
+github: [rootedresilientshop-pixel]
+
+# Alternative: Ko-fi (simple one-time donations)
+ko_fi: bridgemod
+
+# Enterprise: Tidelift (security updates + commercial support)
+tidelift: nuget/BridgeMod.SDK

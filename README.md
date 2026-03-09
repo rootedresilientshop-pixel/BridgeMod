@@ -211,6 +211,44 @@ We welcome contributions. Before you start:
 
 Whether it's a typo fix, a bug report, or a feature idea—we appreciate your help bridging the gap.
 
+## Support & Sponsorship
+
+### Our Model: Independent & Sustainable
+
+BridgeMod is an independent mission to make cross-platform modding safe, deterministic, and professional-grade. **The Core SDK is a "Love Offering" to the dev community—always free and open-source.**
+
+Sponsorships and commercial tools are how we sustain this work and accelerate the roadmap. This is not charity; it's an investment in the ecosystem.
+
+### Why Sponsor?
+
+Every sponsorship directly funds:
+
+- ✅ **Phase 5 (v0.6.0):** Cloud Validation Service — streamline mod certification workflows
+- ✅ **Phase 6 (v0.7.0):** Asset Pipeline — safe texture, mesh, and audio mod support
+- ✅ **Studio Tools:** ModPackager & SchemaValidator (early access for sponsors)
+- ✅ **Priority Support:** Fast-track architecture questions, integration help, custom solutions
+
+### Sponsorship Tiers
+
+**[→ Sponsor on GitHub](https://github.com/sponsors/rootedresilientshop-pixel)**
+
+| Tier | Monthly | For Whom | Includes |
+|------|---------|----------|----------|
+| **Individual** | $5 | Modders, curious devs | Sponsor badge, monthly updates, community access |
+| **Studio Early Access** | $49 | Game studios (PC/console) | Early access to Phase 5, priority support, design input, 2 hrs/mo consulting |
+| **Certification Partner** | $199 | Studios shipping console mods | Early access to SchemaValidator/ModPackager, custom rule generation, unlimited support, featured partnership |
+
+### The Path Forward
+
+If you're shipping mods on console, certifying with your platform holder, or building commercial mod tooling:
+
+- **Sponsorship** accelerates our roadmap and gives you early access
+- **Commercial Licensing** (Phase 6) will be available for studios bundling BridgeMod with proprietary tools
+
+This is how sustainable open-source works: community support funds the commons, commercial tools fund the company.
+
+---
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
