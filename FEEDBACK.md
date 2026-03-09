@@ -1,12 +1,12 @@
 # BridgeMod Community Feedback & Roadmap
 
+## A Message from the Developer
+
+BridgeMod is a mission-driven project aimed at making modding safer and more deterministic for everyone. I am a solo developer working hard to solve these problems, but I am not an expert in every niche of low-level systems engineering.
+
 **We're building this in the open. Your feedback shapes what's next.**
 
-This document lists:
-- What we just shipped (v0.5.0)
-- What the community is asking for
-- What we're currently blocked on
-- How you can help
+If you are a senior engineer, a math enthusiast, or a desync survivor—**I want to learn from you.**
 
 ---
 
@@ -29,6 +29,27 @@ This document lists:
 **Test coverage:** 15 new tests proving determinism across 1000 iterations
 
 **Read more:** [docs/Phase4_Procedural.md](docs/Phase4_Procedural.md)
+
+---
+
+## 🎯 Current Areas for Technical Review
+
+I am currently looking for **"fresh eyes"** on the following implementations in the **v0.5.0 (Phase 4)** release:
+
+### 1. **Xorshift32 Math** (`src/BridgeMod.SDK/BridgeRandom.cs`)
+- **Question:** Does the bit-shifting logic look sound for cross-platform invariants (IL2CPP, Mono, AOT)?
+- **Concern:** Determinism across different .NET runtimes (Windows, macOS, Linux, console)
+- **How to help:** Open a discussion in [GitHub Discussions](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions) with your review
+
+### 2. **Weight Normalization** (`src/BridgeMod.SDK/ProceduralWeightTable.cs`)
+- **Question:** Is the approach to probability budgeting robust enough to prevent floating-point drift desyncs?
+- **Concern:** Edge cases (all-zero weights, extreme values, very large weight counts)
+- **How to help:** Test with your data distribution; report edge cases in issues
+
+### 3. **Audit Strategy** (`src/BridgeMod.SDK/BridgeMod.Bridge.cs`, `AuditLogger` class)
+- **Question:** Does the audit logger capture enough state to help a dev recreate a procedural crash?
+- **Concern:** Performance under high-frequency logging; thread-safety under extreme contention
+- **How to help:** Review the code; suggest improvements in discussions
 
 ---
 
@@ -195,38 +216,39 @@ This document lists:
 
 ---
 
-## 🎯 How You Can Help
+## 💡 How to Help
 
-### 1. Use BridgeMod & Report Back
+### 1. **Review the Code** (Especially Phase 4)
+- Xorshift32 implementation: Sound for all platforms?
+- Weight normalization: Edge cases handled?
+- Audit logging: Capture enough state?
+- [Open a discussion with your review](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
+
+### 2. **Use BridgeMod & Report Back**
 - Try v0.5.0 in your game
 - Tell us what breaks
 - Tell us what you love
 - [Open an issue](https://github.com/rootedresilientshop-pixel/BridgeMod/issues)
 
-### 2. Share Your Use Case
+### 3. **Share Your Use Case**
 - What game engine are you using?
 - What surfaces matter to you? (Data? Graphs? Procedural?)
 - What would make BridgeMod a "yes" for you?
 - [Start a discussion](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
 
-### 3. Contribute Code
+### 4. **Contribute Code**
 - Bug fixes (we love pull requests)
 - Performance improvements (benchmark code)
 - New examples (Godot, Unreal, custom engines)
 - Documentation (guides, tutorials, diagrams)
 - [See CONTRIBUTING.md](CONTRIBUTING.md)
 
-### 4. Spread the Word
+### 5. **Spread the Word**
 - Blog post about BridgeMod?
 - Talk at a conference?
 - Show it to your studio?
 - Tweet? Toot? Post on r/gamedev?
 - **Tag us:** [@DreamCraftMod](https://twitter.com/dreamcraftmod) or open a discussion
-
-### 5. Request a Feature
-- Need something specific?
-- [GitHub Discussions](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions) is the place
-- Include: your use case, why it matters, how you'd use it
 
 ---
 
@@ -251,12 +273,16 @@ For bugs & technical problems
 
 ### GitHub Discussions
 For ideas, questions, use cases, and general conversation
+- **Show & Tell:** Share your BridgeMod implementation
+- **Architecture Questions:** Deep dives on design
+- **Ideas & Feedback:** What should Phase 5 prioritize?
+- **Help & Troubleshooting:** Community helps community
 
 ### Reddit
 Mentioned on [r/gamedev](https://reddit.com/r/gamedev), [r/csharp](https://reddit.com/r/csharp)
 
 ### Direct Contact
-Questions? Email or open a discussion. We read everything.
+Questions? Open a discussion or email. We read everything.
 
 ---
 
@@ -268,6 +294,7 @@ Questions? Email or open a discussion. We read everything.
 - ✅ Community-first design (your feedback shapes phases)
 - ✅ Zero breaking changes (additive-only API design)
 - ✅ Open development (you see the work as it happens)
+- ✅ Specific technical review requests (we know where help matters)
 
 **We're NOT:**
 - ❌ Abandoning this project (it's our passion)
@@ -275,6 +302,7 @@ Questions? Email or open a discussion. We read everything.
 - ❌ Monetizing in sneaky ways
 - ❌ Changing the MIT license
 - ❌ Collecting data without consent
+- ❌ Pretending to be experts (we're learning alongside you)
 
 ---
 
@@ -285,7 +313,8 @@ In 6 months, we hope to see:
 2. Modders building cool things across multiple games
 3. Zero major security issues found in production
 4. Community-authored examples for Godot/Unreal/custom engines
-5. Someone saying: "BridgeMod made modding safe and fun again"
+5. **Expert feedback improving Phase 4 implementation** (from people like you)
+6. Someone saying: "BridgeMod made modding safe and fun again"
 
 ---
 
@@ -298,12 +327,14 @@ In 6 months, we hope to see:
 ---
 
 **Last Updated:** March 9, 2026
-**Status:** v0.5.0 (Phase 4 Complete)
+**Status:** v0.5.0 (Phase 4 Complete, Phase 5 Planning)
 **Next Review:** April 9, 2026 (or after Phase 5 decisions)
 **License:** MIT — [See LICENSE](LICENSE)
 
 ---
 
+> "Better to be a sponge for knowledge than an expert in a vacuum."
+>
 > "The best way to predict the future is to build it together."
 >
 > **— BridgeMod Team**

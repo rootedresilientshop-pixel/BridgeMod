@@ -1,4 +1,5 @@
 # 🌉 BridgeMod
+Seeking Expert Eyes: I’m currently refining the deterministic math for v0.5.0. If you have experience with cross-platform desyncs, please see FEEDBACK.md
 
 **Bridging the gap between developers who want mod safety and modders who want clarity.**
 
