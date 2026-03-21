@@ -9,13 +9,14 @@ Build your mod system once. It works on PC, ports to console, and never needs re
 
 [![NuGet](https://img.shields.io/nuget/v/BridgeMod.SDK.svg)](https://www.nuget.org/packages/BridgeMod.SDK/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Build Status](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml/badge.svg)](https://github.com/rootedresilientshop-pixel/BridgeMod/actions/workflows/build.yml)
 
-### 🚀 Status: v0.5.0 Live
-**Milestone:** Phase 4 (Procedural Control Layer) — **Complete** ✅
+### 🚀 Status: v0.6.0 Live — Interface Alpha
+**Milestone:** Phase 5 (Interface Alpha: Governance & Manifest) — **Complete** ✅
+**Previous:** Phase 4 (Procedural Control Layer) — **Complete** ✅
 **Previous:** Phase 3 (Behavior Graph Runtime) — **Complete** ✅
 **Previous:** Phase 2 (Developer Mod Surfaces) — **Complete** ✅
 **Previous:** Phase 1 (Security Foundation) — **Complete** ✅
-**Test Coverage:** 100/100 tests passing (11 Phase 1 + 20 Phase 2 + 15 Phase 3 Foundation + 34 Phase 3 Runtime + 5 AuditLogger + 15 Phase 4) ✅
-**Latest News:** [Phase 4 — Procedural Control Layer: Xorshift32 PRNG & Weight Normalization (Mar 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
+**Test Coverage:** 131/131 tests passing (all previous phases + 14 new governance/manifest tests) ✅
+**Latest News:** [v0.6.0 — Project Manifest, Logic Fingerprinting & Thalamus Integration (Mar 2026)](https://github.com/rootedresilientshop-pixel/BridgeMod/discussions)
 ## Why BridgeMod Exists
 
 We believe:
@@ -39,6 +40,43 @@ We believe:
 ✅ **Transparent Surfaces** - Modders see exactly what's moddable
 
 ✅ **Local Validation** - Works offline, no cloud dependency required
+
+✅ **Governance Manifests** - Logic fingerprints for security auditing and visual orchestration
+
+---
+
+## The Sovereign Suite & Project Thalamus
+
+BridgeMod is **independent and open-source** — it works standalone, makes no assumptions about governance, and ships with zero governance enforcement by default. You control your mod pipeline.
+
+**New in v0.6.0:** BridgeMod now supports **optional integration** with the DreamCraft Sovereign Suite:
+
+- **Project Thalamus** (Visual IDE) — Visually orchestrate mod logic and behavior graphs; BridgeMod will fingerprint your logic definitions for integrity verification.
+- **Kanon** (Governance) — Optional external security auditing. If you integrate Kanon, BridgeMod will track and report your governance status (e.g., `[GOVERNED_BY_KANON]` prefix in audit logs).
+
+### How It Works Without Governance
+
+By default, all audit logs are prefixed `[UNGOVERNED]`. This is not a failure state — it means you're using BridgeMod's standalone security model:
+
+```
+[UNGOVERNED] [2025-03-21T...] [PARSE_ERR_001] payload=mod_123 :: Disallowed markup in field 'description'
+```
+
+The three-gate firewall runs the same way. Nothing changes. You're good.
+
+### How It Works With Governance
+
+If you choose to integrate Kanon, set `bridge.GovernanceCertificate = "..."` and logs flip to:
+
+```
+[GOVERNED_BY_KANON] [2025-03-21T...] [BOUND_CLAMP_003] payload=mod_456 :: Field 'health' clamped: 50000 -> 9999
+```
+
+The logic fingerprint (SHA256 of surfaces, graphs, and weights) is what Kanon can cryptographically sign for formal certification.
+
+**You decide.** Standalone, governed, or hybrid. BridgeMod works all three ways.
+
+---
 
 ### How It Works
 

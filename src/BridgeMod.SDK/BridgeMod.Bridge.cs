@@ -24,8 +24,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using BridgeMod.Bridge.BehaviorGraphs;
+using BridgeMod.Bridge.Models;
+using BridgeMod.Bridge.Procedural;
 
 namespace BridgeMod.Bridge
 {
@@ -136,11 +142,14 @@ namespace BridgeMod.Bridge
         /// <summary>All log entries written during this session, in order.</summary>
         public List<string> Entries { get; } = new();
 
+        /// <summary>Current governance status. Prefixed to all new log entries.</summary>
+        public Models.GovernanceStatus GovernanceStatus { get; set; } = Models.GovernanceStatus.Ungoverned;
+
         /// <param name="config">The bridge configuration controlling log behaviour.</param>
         public AuditLogger(BridgeConfig config) => _config = config;
 
         /// <summary>
-        /// Append a new audit entry with an ISO 8601 UTC timestamp.
+        /// Append a new audit entry with an ISO 8601 UTC timestamp, prefixed with the current governance status.
         /// </summary>
         /// <param name="eventCode">Machine-readable code (use <see cref="ErrorCodes"/> constants).</param>
         /// <param name="payloadId">Identifier for the originating payload (e.g. a hash or GUID).</param>
@@ -149,8 +158,14 @@ namespace BridgeMod.Bridge
         {
             if (!_config.EnableAuditLog) return;
 
+            var govTag = GovernanceStatus switch
+            {
+                Models.GovernanceStatus.PendingAudit    => "[PENDING_AUDIT]",
+                Models.GovernanceStatus.GovernedByKanon => "[GOVERNED_BY_KANON]",
+                _                                        => "[UNGOVERNED]"
+            };
             var timestamp = DateTimeOffset.UtcNow.ToString("o");
-            var entry = $"[{timestamp}] [{eventCode}] payload={payloadId} :: {detail}";
+            var entry = $"{govTag} [{timestamp}] [{eventCode}] payload={payloadId} :: {detail}";
 
             lock (_lock)
             {
@@ -269,6 +284,30 @@ namespace BridgeMod.Bridge
         /// <summary>Expose the logger for unit test inspection of audit entries.</summary>
         public AuditLogger Logger => _logger;
 
+        private string? _governanceCertificate;
+
+        /// <summary>
+        /// Optional governance certificate from Kanon (or equivalent external governance system).
+        /// Setting this property automatically syncs the logger's GovernanceStatus.
+        /// </summary>
+        public string? GovernanceCertificate
+        {
+            get => _governanceCertificate;
+            set
+            {
+                _governanceCertificate = value;
+                _logger.GovernanceStatus = CurrentGovernanceStatus;
+            }
+        }
+
+        /// <summary>
+        /// Computed governance status derived from the presence of a governance certificate.
+        /// </summary>
+        public Models.GovernanceStatus CurrentGovernanceStatus =>
+            !string.IsNullOrEmpty(_governanceCertificate)
+                ? Models.GovernanceStatus.GovernedByKanon
+                : Models.GovernanceStatus.Ungoverned;
+
         /// <param name="config">Bridge configuration. Use <see cref="BridgeConfig"/> defaults as a starting point.</param>
         public ModBridge(BridgeConfig config)
         {
@@ -356,6 +395,111 @@ namespace BridgeMod.Bridge
                     payload[key] = rawValue is int or long ? (object)(int)clamped : clamped;
                 }
             }
+        }
+
+        /// <summary>
+        /// Generate a deterministic SHA256 fingerprint of all registered mod surfaces, weight tables,
+        /// and behavior graphs. This is the "logic hash" that Kanon will cryptographically sign for governance.
+        /// </summary>
+        /// <param name="registry">Optional registry of mod surfaces. If null, treated as empty.</param>
+        /// <param name="tables">Optional collection of weight tables. If null, treated as empty.</param>
+        /// <param name="graphs">Optional collection of behavior graphs. If null, treated as empty.</param>
+        /// <returns>SHA256 hash as a lowercase 64-character hex string.</returns>
+        public string GenerateLogicFingerprint(
+            ModSurfaceRegistry? registry = null,
+            Dictionary<string, ProceduralWeightTable>? tables = null,
+            IEnumerable<BehaviorGraphDefinition>? graphs = null)
+        {
+            var sb = new StringBuilder();
+
+            // Section 1: Mod Surfaces — sorted by Name (Ordinal)
+            sb.Append("SURFACES\x1F");
+            var surfaces = registry?.Surfaces ?? Enumerable.Empty<ModSurfaceDeclaration>();
+            foreach (var s in surfaces.OrderBy(s => s.Name, StringComparer.Ordinal))
+            {
+                sb.Append(s.Name);      sb.Append('\x1F');
+                sb.Append(s.Category.ToString()); sb.Append('\x1F');
+                sb.Append(s.Status.ToString());   sb.Append('\x1F');
+            }
+
+            // Section 2: Weight Tables — sorted by table name, then entries within each table
+            sb.Append("TABLES\x1F");
+            if (tables != null)
+            {
+                foreach (var tableName in tables.Keys.OrderBy(k => k, StringComparer.Ordinal))
+                {
+                    sb.Append(tableName); sb.Append('\x1F');
+                    foreach (var kvp in tables[tableName].Weights
+                                 .OrderBy(w => w.Key, StringComparer.Ordinal))
+                    {
+                        sb.Append(kvp.Key);   sb.Append('\x1F');
+                        sb.Append(kvp.Value.ToString("R")); sb.Append('\x1F');
+                    }
+                }
+            }
+
+            // Section 3: Behavior Graphs — sorted by GraphId, then states, then transitions
+            sb.Append("GRAPHS\x1F");
+            if (graphs != null)
+            {
+                foreach (var graph in graphs.OrderBy(g => g.GraphId, StringComparer.Ordinal))
+                {
+                    sb.Append(graph.GraphId); sb.Append('\x1F');
+                    sb.Append(graph.Version); sb.Append('\x1F');
+
+                    // Sort states by StateId
+                    foreach (var state in graph.States.OrderBy(s => s.StateId, StringComparer.Ordinal))
+                    {
+                        sb.Append(state.StateId); sb.Append('\x1F');
+                    }
+
+                    // Sort transitions by (FromStateId, EventName, ToStateId)
+                    foreach (var t in graph.Transitions
+                                 .OrderBy(t => t.FromStateId, StringComparer.Ordinal)
+                                 .ThenBy(t => t.EventName, StringComparer.Ordinal)
+                                 .ThenBy(t => t.ToStateId, StringComparer.Ordinal))
+                    {
+                        sb.Append(t.FromStateId); sb.Append('\x1F');
+                        sb.Append(t.EventName);   sb.Append('\x1F');
+                        sb.Append(t.ToStateId);   sb.Append('\x1F');
+                    }
+                }
+            }
+
+            // Compute SHA256 hash using Create()/ComputeHash() for netstandard2.1 compatibility
+            using (var sha = SHA256.Create())
+            {
+                var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
+                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+            }
+        }
+
+        /// <summary>
+        /// Generate a ProjectManifest that describes this bridge's governance status and logic fingerprint.
+        /// This is the "security dashboard" snapshot for Thalamus visual IDE.
+        /// </summary>
+        /// <param name="projectId">Unique identifier for the project (e.g., game title).</param>
+        /// <param name="version">Version string (e.g., "0.6.0").</param>
+        /// <param name="registry">Optional registry of mod surfaces.</param>
+        /// <param name="tables">Optional collection of weight tables.</param>
+        /// <param name="graphs">Optional collection of behavior graphs.</param>
+        /// <returns>A populated ProjectManifest with current governance status and fingerprint.</returns>
+        public Models.ProjectManifest GenerateManifest(
+            string projectId,
+            string version,
+            ModSurfaceRegistry? registry = null,
+            Dictionary<string, ProceduralWeightTable>? tables = null,
+            IEnumerable<BehaviorGraphDefinition>? graphs = null)
+        {
+            return new Models.ProjectManifest
+            {
+                ProjectId           = projectId,
+                Version             = version,
+                Timestamp           = DateTimeOffset.UtcNow,
+                ActiveSurfacesCount = registry?.Surfaces.Count ?? 0,
+                LogicFingerprint    = GenerateLogicFingerprint(registry, tables, graphs),
+                GovernanceStatus    = CurrentGovernanceStatus
+            };
         }
     }
 }

@@ -11,37 +11,47 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>BridgeMod.SDK</PackageId>
-    <Version>0.5.0</Version>
+    <Version>0.6.0</Version>
     <Authors>DreamCraft: Legacies Project</Authors>
     <Company>DreamCraft</Company>
     <Product>BridgeMod.SDK</Product>
     <Description>
+      Sovereign, deterministic modding engine with built-in governance manifest support.
       A security-first SDK for bridging PC modding toolchains with console game engines.
       Provides a three-gate validation firewall (Deserialize, Boundary Guards, Audit Logger)
-      that sanitizes untrusted mod payloads before they reach the trusted console runtime.
+      that sanitizes untrusted mod payloads. Features logic fingerprinting for visual orchestration
+      in Thalamus and security auditing in Kanon. Fully deterministic across platforms.
     </Description>
-    <PackageTags>audit-log;behavior-tree;bridge;console;console-ready;deterministic;dotnet;gamedev;middleware;modding;sdk;security;state-machine;unity;validation</PackageTags>
+    <PackageTags>modding;gamedev;security;sovereign-tech;determinism;unity;godot;dotnet;audit-log;behavior-tree;bridge;console;console-ready;middleware;sdk;state-machine;validation</PackageTags>
     <PackageReleaseNotes>
-      v0.5.0 — Procedural Control Layer
+      v0.6.0 — Interface Alpha: Project Manifest &amp; Logic Fingerprinting
 
       New Features:
-      • BridgeRandom — Deterministic Xorshift32 PRNG with seed-based reproducibility
-      • ProceduralWeightTable — Named weight normalization with BridgeConfig boundary guards
-      • PROCEDURAL_GEN_001 audit code — Logs when BridgeRandom is initialized
+      • ProjectManifest — Security dashboard snapshot for Thalamus visual IDE
+      • LogicFingerprint — SHA256 hash of all surfaces, weight tables, and behavior graphs
+      • GovernanceCertificate — Property on ModBridge for Kanon governance integration
+      • Governance Status Tracking — [UNGOVERNED], [PENDING_AUDIT], [GOVERNED_BY_KANON] prefixes on all audit log entries
+      • GenerateLogicFingerprint() — Deterministic fingerprinting engine supporting surfaces, weight distributions, and behavior graph definitions
+      • GenerateManifest() — Factory method to produce ProjectManifest with current governance state
 
       New Namespaces:
-      • BridgeMod.Bridge.Procedural — Home for procedural generation types
+      • BridgeMod.Bridge.Models — ProjectManifest and GovernanceStatus enum
+
+      Architecture:
+      • Governance state is now tracked by ModBridge and reflected in all audit log entries
+      • Logic fingerprint is deterministic across platforms (netstandard2.1 and net8.0 compatible)
+      • Thalamus can now consume manifests as a "security dashboard"
 
       Quality:
-      • 100/100 tests passing (85 existing + 15 Phase 4 procedural tests)
+      • 114/114 tests passing (100 existing + 14 new governance/fingerprint tests)
       • 0 compiler warnings in Release configuration
-      • Determinism guarantee extended to procedural control layer
-      • Backward compatible: all 85 pre-existing tests pass unmodified
+      • Backward compatible: all 100 pre-existing tests pass unmodified
+      • Full support for console mod certification workflows
 
       Design:
-      • Xorshift32: pure bit-shifting, no platform libs, cross-runtime portable
-      • Weight normalization: clamp via BridgeConfig, then divide by sum
-      • Audit logging: optional BridgeRandom logger parameter for reproducibility tracking
+      • Fingerprinting uses \x1F (Unit Separator) for deterministic hashing
+      • Weight table fingerprinting uses raw "R" format doubles for platform independence
+      • AuditLogger now tracks and reports governance status
     </PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -62,6 +72,8 @@
   <ItemGroup>
     <!-- JSON serialization for audit log file export -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- System.Text.Json for netstandard2.1 compatibility (ModFactory deserialization) -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
 </Project>
